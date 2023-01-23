@@ -31,10 +31,11 @@ func sendMetric(client http.Client, metricType string, metricName string, metric
 	}
 	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
 
-	_, errC := client.Do(request)
+	resp, errC := client.Do(request)
 	if errC != nil {
 		fmt.Println(errC)
 	}
+	defer resp.Body.Close()
 }
 
 func main() {
