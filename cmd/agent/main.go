@@ -89,12 +89,15 @@ func main() {
 			metrics.PollCount += 1
 			metrics.RandomValue = rand.Int()
 			for _, metric := range trackedMetrics {
-				fmt.Println(metric)
 				metricValue := reflect.Indirect(reflect.ValueOf(metrics)).FieldByName(metric)
-				switch reflect.TypeOf(metricValue).String() {
-				case "uint64":
+
+				if metricValue.CanUint() {
 					metricVal = strconv.FormatUint(metricValue.Uint(), 10)
-				case "float64":
+				}
+				if metricValue.CanInt() {
+					metricVal = strconv.FormatInt(metricValue.Int(), 10)
+				}
+				if metricValue.CanFloat() {
 					metricVal = strconv.FormatFloat(metricValue.Float(), 'g', 5, 64)
 				}
 
