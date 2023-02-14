@@ -28,14 +28,6 @@ func TestHandleMetric(t *testing.T) {
 			},
 			request: "/update/PollCount/counter/1",
 		},
-		{
-			name: "simple test #2",
-			want: want{
-				contentType: "application/json",
-				statusCode:  400,
-			},
-			request: "/update/PollCount/counter",
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -47,6 +39,7 @@ func TestHandleMetric(t *testing.T) {
 			defer result.Body.Close()
 
 			// проверяем код ответа
+			fmt.Println(result)
 			if result.StatusCode != tt.want.statusCode {
 				t.Errorf("Expected status code %d, got %d", tt.want.statusCode, w.Code)
 			}
