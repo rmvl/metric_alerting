@@ -31,8 +31,9 @@ func (storage MemStorage) IncrementCounter(name string, value uint64) {
 	_, ok := storage.counters[name]
 	if !ok {
 		storage.counters[name] = value
+	} else {
+		storage.counters[name] += value
 	}
-	storage.counters[name]++
 }
 
 func (storage MemStorage) GetMetric(name string, metricType string) (string, bool) {

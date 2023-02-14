@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
-	"fmt"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
@@ -14,9 +12,21 @@ func UpdateMetric(storage storageRepository.StorageRepository) http.HandlerFunc 
 		metricName := chi.URLParam(r, "metricName")
 		metricType := chi.URLParam(r, "metricType")
 		metricValue := chi.URLParam(r, "metricValue")
-		fmt.Println(metricName, metricType, metricValue)
 
-		rw.Header().Set("Content-Type", "application/json")
+		if metricName == "" {
+			http.Error(rw, "metricName param is missed", http.StatusBadRequest)
+			return
+		}
+		if metricType == "" {
+			http.Error(rw, "metricType param is missed", http.StatusBadRequest)
+			return
+		}
+		if metricValue == "" {
+			http.Error(rw, "metricValue param is missed", http.StatusBadRequest)
+			return
+		}
+
+		rw.Header().Set("Content-Type", "text/plain")
 
 		if metricType == "counter" {
 			if s, err := strconv.ParseUint(metricType, 10, 32); err == nil {
@@ -26,7 +36,6 @@ func UpdateMetric(storage storageRepository.StorageRepository) http.HandlerFunc 
 		if metricType == "gauge" {
 			storage.SetGaugeMetric(metricName, metricValue)
 		}
-		fmt.Println(storage)
 
 		rw.WriteHeader(http.StatusOK)
 	}
@@ -34,22 +43,38 @@ func UpdateMetric(storage storageRepository.StorageRepository) http.HandlerFunc 
 
 func MetricList(storage storageRepository.StorageRepository) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
-		rw.Header().Set("Content-Type", "application/json")
+		rw.Header().Set("Content-Type", "text/plain")
 
 		rw.WriteHeader(http.StatusOK)
-		resp, _ := json.Marshal(storage.GetList())
-		fmt.Println(resp)
-		rw.Write(resp)
+		var response string
+
+		for k, v := range storage.GetList() {
+			response += k + ": " + v + "<br/>"
+		}
+
+		rw.Write([]byte(response))
 	}
 }
 
-func Get(storage storageRepository.StorageRepository) http.HandlerFunc {
+func GetMetric(storage storageRepository.StorageRepository) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		metricName := chi.URLParam(r, "metricName")
 		metricType := chi.URLParam(r, "metricType")
-		fmt.Println(metricName, metricType)
+		if metricType == "" {
+			http.Error(rw, "metricType param is missed", http.StatusBadRequest)
+			return
+		}
+		if metricName == "" {
+			http.Error(rw, "metricName param is missed", http.StatusBadRequest)
+			return
+		}
 
-		rw.Header().Set("Content-Type", "application/json")
+		if metricType == "" || metricName == "" {
+			rw.WriteHeader(http.StatusNotFound)
+			rw.Write([]byte(""))
+			return
+		}
+		rw.Header().Set("Content-Type", "text/plain")
 
 		metrivVal, ok := storage.GetMetric(metricName, metricType)
 		if !ok {
@@ -58,9 +83,7 @@ func Get(storage storageRepository.StorageRepository) http.HandlerFunc {
 			return
 		}
 
-		resp, _ := json.Marshal(metrivVal)
-
 		rw.WriteHeader(http.StatusOK)
-		rw.Write(resp)
+		rw.Write([]byte(metrivVal))
 	}
 }

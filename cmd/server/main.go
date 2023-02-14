@@ -19,13 +19,14 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
+	r.Route("/", func(r chi.Router) {
+		r.Get("/", handlers.MetricList(storage))
+		r.Get("/value/{metricType}/{metricName}", handlers.GetMetric(storage))
+	})
+
 	r.Route("/update", func(r chi.Router) {
 		r.Post("/{metricName}/{metricType}/{metricValue}", handlers.UpdateMetric(storage))
 	})
-
-	r.Get("/", handlers.MetricList(storage))
-
-	r.Get("/value/{metricType}/{metricName}", handlers.Get(storage))
 
 	// запуск сервера с адресом localhost, порт 8080
 	err := http.ListenAndServe(":8080", r)
