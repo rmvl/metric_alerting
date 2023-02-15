@@ -26,15 +26,26 @@ func UpdateMetric(storage storageRepository.StorageRepository) http.HandlerFunc 
 			return
 		}
 
-		rw.Header().Set("Content-Type", "text/plain")
+		if metricType != "counter" && metricType != "gauge" {
+			http.Error(rw, "metricValue param is missed", http.StatusBadRequest)
+			return
+		}
 
 		if metricType == "counter" {
-			if s, err := strconv.ParseUint(metricType, 10, 32); err == nil {
+			if s, err := strconv.ParseUint(metricValue, 10, 64); err == nil {
 				storage.IncrementCounter(metricName, s)
+			} else {
+				http.Error(rw, "metricValue param is not int64", http.StatusBadRequest)
+				return
 			}
 		}
 		if metricType == "gauge" {
-			storage.SetGaugeMetric(metricName, metricValue)
+			if _, err := strconv.ParseFloat(metricValue, 64); err == nil {
+				storage.SetGaugeMetric(metricName, metricValue)
+			} else {
+				http.Error(rw, "metricValue param is not float 64", http.StatusBadRequest)
+				return
+			}
 		}
 
 		rw.WriteHeader(http.StatusOK)
