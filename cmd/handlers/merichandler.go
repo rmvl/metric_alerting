@@ -27,7 +27,7 @@ func UpdateMetric(storage storageRepository.StorageRepository) http.HandlerFunc 
 		}
 
 		if metricType != "counter" && metricType != "gauge" {
-			http.Error(rw, "metricValue param is missed", http.StatusBadRequest)
+			http.Error(rw, "metricValue param is missed", http.StatusNotImplemented)
 			return
 		}
 
