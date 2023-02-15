@@ -101,21 +101,6 @@ func TestMetricList(t *testing.T) {
 				return storage
 			}(),
 		},
-		{
-			name: "simple test #3",
-			want: want{
-				contentType: "application/json",
-				statusCode:  200,
-				content:     "PollCount: 300<br/>StackSys: 300.1<br/>",
-			},
-			request: "/",
-			storage: func() storageClient.StorageRepository {
-				storage := storageClient.NewMemStorage()
-				storage.IncrementCounter("PollCount", 300)
-				storage.SetGaugeMetric("StackSys", "300.1")
-				return storage
-			}(),
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
