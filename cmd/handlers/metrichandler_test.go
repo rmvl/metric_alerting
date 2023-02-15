@@ -36,10 +36,20 @@ func TestUpdateMetric(t *testing.T) {
 			metricName:  "PollCount",
 			metricValue: "1",
 		},
+		{
+			name: "simple test #1",
+			want: want{
+				contentType: "application/json",
+				statusCode:  200,
+			},
+			metricType:  "gauge",
+			metricName:  "testGauge",
+			metricValue: "100",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			method := "/update/" + tt.metricName + "/" + tt.metricType + "/" + tt.metricValue
+			method := "/update/" + tt.metricType + "/" + tt.metricName + "/" + tt.metricValue
 			request := httptest.NewRequest(http.MethodPost, method, nil)
 			w := httptest.NewRecorder()
 			rctx := chi.NewRouteContext()

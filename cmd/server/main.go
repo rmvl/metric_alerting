@@ -25,7 +25,7 @@ func main() {
 	})
 
 	r.Route("/update", func(r chi.Router) {
-		r.Post("/{metricName}/{metricType}/{metricValue}", handlers.UpdateMetric(storage))
+		r.Post("/{metricType}/{metricName}/{metricValue}", handlers.UpdateMetric(storage))
 	})
 
 	// запуск сервера с адресом localhost, порт 8080
