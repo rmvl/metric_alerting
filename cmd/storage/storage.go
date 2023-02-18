@@ -2,6 +2,7 @@ package storage
 
 import (
 	"strconv"
+	"sync"
 )
 
 type StorageRepository interface {
@@ -24,16 +25,23 @@ func NewMemStorage() *MemStorage {
 }
 
 func (storage MemStorage) SetGaugeMetric(name string, value string) {
+	var m sync.Mutex
+	m.Lock()
 	storage.metrics[name] = value
+    m.Unlock()
 }
 
 func (storage MemStorage) IncrementCounter(name string, value uint64) {
+	var m sync.Mutex
+	m.Lock()
+
 	_, ok := storage.counters[name]
 	if !ok {
 		storage.counters[name] = value
 	} else {
 		storage.counters[name] += value
 	}
+    m.Unlock()
 }
 
 func (storage MemStorage) GetMetric(name string, metricType string) (string, bool) {

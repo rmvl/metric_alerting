@@ -23,8 +23,8 @@ type metrics struct {
 	runtime.MemStats
 }
 
-func sendMetric(client http.Client, metricType string, metricName string, metricValue string) {
-	var body = []byte(`{"message":"Hello"}`)
+func sendMetric(client http.Client, metricType string, metricName string, metricValue string) error {
+	var body = []byte("")
 	request, err := http.NewRequest(http.MethodPost, "http://localhost:8080/update/"+metricType+"/"+metricName+"/"+metricValue, bytes.NewBuffer(body))
 	if err != nil {
 		fmt.Println(err)
@@ -34,8 +34,10 @@ func sendMetric(client http.Client, metricType string, metricName string, metric
 	resp, errC := client.Do(request)
 	if errC != nil {
 		fmt.Println(errC)
+		return errC
 	}
-	defer resp.Body.Close()
+	resp.Body.Close()
+	return nil
 }
 
 func MonitorMetrics() {
@@ -78,7 +80,10 @@ func MonitorMetrics() {
 
 	start := time.Now()
 	pollTicker := time.NewTicker(pollInterval * time.Second)
+	defer pollTicker.Stop()
 	reportTicker := time.NewTicker(reportInterval * time.Second)
+	defer reportTicker.Stop()
+
 	for {
 		select {
 		case x := <-reportTicker.C:
@@ -96,10 +101,13 @@ func MonitorMetrics() {
 					metricVal = strconv.FormatFloat(metricValue.Float(), 'g', 5, 64)
 				}
 
-				sendMetric(client, metric, typeGauge, metricVal)
+				err := sendMetric(client, typeGauge, metric, metricVal)
+				fmt.Println(err)
 			}
-			sendMetric(client, "PollCount", typeCounter, strconv.Itoa(metrics.PollCount))
-			sendMetric(client, "RandomValue", typeGauge, strconv.Itoa(metrics.RandomValue))
+			sendMetric(client, typeCounter, "PollCount", strconv.Itoa(metrics.PollCount))
+			sendMetric(client, typeGauge, "RandomValue", strconv.Itoa(metrics.RandomValue))
+
+			metrics.PollCount = 0
 		case y := <-pollTicker.C:
 			fmt.Println(int(y.Sub(start).Seconds()))
 			runtime.ReadMemStats(&metrics.MemStats)
