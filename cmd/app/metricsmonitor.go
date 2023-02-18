@@ -42,7 +42,6 @@ func sendMetric(client http.Client, metricType string, metricName string, metric
 
 func MonitorMetrics() {
 	var trackedMetrics []string
-	var metricVal string
 	trackedMetrics = []string{
 		"Alloc",
 		"BuckHashSys",
@@ -91,17 +90,7 @@ func MonitorMetrics() {
 			for _, metric := range trackedMetrics {
 				metricValue := reflect.Indirect(reflect.ValueOf(metrics)).FieldByName(metric)
 
-				if metricValue.CanUint() {
-					metricVal = strconv.FormatUint(metricValue.Uint(), 10)
-				}
-				if metricValue.CanInt() {
-					metricVal = strconv.FormatInt(metricValue.Int(), 10)
-				}
-				if metricValue.CanFloat() {
-					metricVal = strconv.FormatFloat(metricValue.Float(), 'g', 5, 64)
-				}
-
-				err := sendMetric(client, typeGauge, metric, metricVal)
+				err := sendMetric(client, typeGauge, metric, metricValue.String())
 				fmt.Println(err)
 			}
 			sendMetric(client, typeCounter, "PollCount", strconv.Itoa(metrics.PollCount))
