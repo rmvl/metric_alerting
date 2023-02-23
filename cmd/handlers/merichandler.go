@@ -98,7 +98,7 @@ func GetMetric(storage storageRepository.StorageRepository) http.HandlerFunc {
 		switch metric.MType {
 		case "counter":
 			val, ok := storage.GetCounterMetric(metric.ID)
-			if ok != true {
+			if !ok {
 				rw.WriteHeader(http.StatusNotFound)
 				rw.Write([]byte(""))
 				return
@@ -106,7 +106,7 @@ func GetMetric(storage storageRepository.StorageRepository) http.HandlerFunc {
 			metric.Delta = &val
 		case "gauge":
 			val, ok := storage.GetGaugeMetric(metric.ID)
-			if ok != true {
+			if !ok {
 				rw.WriteHeader(http.StatusNotFound)
 				rw.Write([]byte(""))
 				return
