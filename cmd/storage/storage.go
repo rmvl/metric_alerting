@@ -15,25 +15,25 @@ type StorageRepository interface {
 type MemStorage struct {
 	metrics  map[string]string
 	counters map[string]uint64
+	mutex    sync.RWMutex
 }
 
 func NewMemStorage() *MemStorage {
 	return &MemStorage{
 		make(map[string]string, 100),
 		make(map[string]uint64, 100),
+		sync.RWMutex{},
 	}
 }
 
-func (storage MemStorage) SetGaugeMetric(name string, value string) {
-	var m sync.Mutex
-	m.Lock()
+func (storage *MemStorage) SetGaugeMetric(name string, value string) {
+	storage.mutex.Lock()
 	storage.metrics[name] = value
-    m.Unlock()
+	storage.mutex.Unlock()
 }
 
-func (storage MemStorage) IncrementCounter(name string, value uint64) {
-	var m sync.Mutex
-	m.Lock()
+func (storage *MemStorage) IncrementCounter(name string, value uint64) {
+	storage.mutex.Lock()
 
 	_, ok := storage.counters[name]
 	if !ok {
@@ -41,10 +41,10 @@ func (storage MemStorage) IncrementCounter(name string, value uint64) {
 	} else {
 		storage.counters[name] += value
 	}
-    m.Unlock()
+	storage.mutex.Unlock()
 }
 
-func (storage MemStorage) GetMetric(name string, metricType string) (string, bool) {
+func (storage *MemStorage) GetMetric(name string, metricType string) (string, bool) {
 	if metricType == "counter" {
 		val, ok := storage.counters[name]
 		if !ok {
@@ -66,7 +66,10 @@ func (storage MemStorage) GetMetric(name string, metricType string) (string, boo
 	return "", false
 }
 
-func (storage MemStorage) GetList() map[string]string {
+func (storage *MemStorage) GetList() map[string]string {
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
+
 	allMetrics := make(map[string]string, 100)
 	for k, v := range storage.metrics {
 		allMetrics[k] = v

@@ -31,21 +31,24 @@ func UpdateMetric(storage storageRepository.StorageRepository) http.HandlerFunc 
 			return
 		}
 
-		if metricType == "counter" {
+		switch metricType {
+		case "counter":
 			if s, err := strconv.ParseUint(metricValue, 10, 64); err == nil {
 				storage.IncrementCounter(metricName, s)
 			} else {
 				http.Error(rw, "metricValue param is not int64", http.StatusBadRequest)
 				return
 			}
-		}
-		if metricType == "gauge" {
+		case "gauge":
 			if _, err := strconv.ParseFloat(metricValue, 64); err == nil {
 				storage.SetGaugeMetric(metricName, metricValue)
 			} else {
 				http.Error(rw, "metricValue param is not float 64", http.StatusBadRequest)
 				return
 			}
+		default:
+			http.Error(rw, "Unsupported metricType"+metricType, http.StatusBadRequest)
+			return
 		}
 
 		rw.WriteHeader(http.StatusOK)
@@ -54,7 +57,7 @@ func UpdateMetric(storage storageRepository.StorageRepository) http.HandlerFunc 
 
 func MetricList(storage storageRepository.StorageRepository) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
-		rw.Header().Set("Content-Type", "text/plain")
+		rw.Header().Set("Content-Type", "text/html")
 
 		rw.WriteHeader(http.StatusOK)
 		var response string
@@ -85,7 +88,7 @@ func GetMetric(storage storageRepository.StorageRepository) http.HandlerFunc {
 			rw.Write([]byte(""))
 			return
 		}
-		rw.Header().Set("Content-Type", "text/plain")
+		rw.Header().Set("Content-Type", "text/html")
 
 		metrivVal, ok := storage.GetMetric(metricName, metricType)
 		if !ok {

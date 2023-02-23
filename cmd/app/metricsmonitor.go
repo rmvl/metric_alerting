@@ -42,6 +42,7 @@ func sendMetric(client http.Client, metricType string, metricName string, metric
 
 func MonitorMetrics() {
 	var trackedMetrics []string
+	var metricVal string
 	trackedMetrics = []string{
 		"Alloc",
 		"BuckHashSys",
@@ -90,11 +91,26 @@ func MonitorMetrics() {
 			for _, metric := range trackedMetrics {
 				metricValue := reflect.Indirect(reflect.ValueOf(metrics)).FieldByName(metric)
 
-				err := sendMetric(client, typeGauge, metric, metricValue.String())
+				if metricValue.CanUint() {
+					metricVal = strconv.FormatUint(metricValue.Uint(), 10)
+				}
+				if metricValue.CanInt() {
+					metricVal = strconv.FormatInt(metricValue.Int(), 10)
+				}
+				if metricValue.CanFloat() {
+					metricVal = strconv.FormatFloat(metricValue.Float(), 'g', 5, 64)
+				}
+
+				if err := sendMetric(client, typeGauge, metric, metricVal); err != nil {
+					fmt.Println(err)
+				}
+			}
+			if err := sendMetric(client, typeCounter, "PollCount", strconv.Itoa(metrics.PollCount)); err != nil {
 				fmt.Println(err)
 			}
-			sendMetric(client, typeCounter, "PollCount", strconv.Itoa(metrics.PollCount))
-			sendMetric(client, typeGauge, "RandomValue", strconv.Itoa(metrics.RandomValue))
+			if err := sendMetric(client, typeGauge, "RandomValue", strconv.Itoa(metrics.RandomValue)); err != nil {
+				fmt.Println(err)
+			}
 
 			metrics.PollCount = 0
 		case y := <-pollTicker.C:
