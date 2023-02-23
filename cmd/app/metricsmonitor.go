@@ -2,12 +2,12 @@ package app
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"net/http"
 	"reflect"
 	"runtime"
-	"strconv"
 	"time"
 )
 
@@ -17,15 +17,26 @@ const pollInterval = 2
 const typeGauge = "gauge"
 const typeCounter = "counter"
 
-type metrics struct {
-	PollCount   int
-	RandomValue int
+type MetricsToMonitor struct {
+	PollCount   int64
+	RandomValue int64
 	runtime.MemStats
 }
 
-func sendMetric(client http.Client, metricType string, metricName string, metricValue string) error {
-	var body = []byte("")
-	request, err := http.NewRequest(http.MethodPost, "http://localhost:8080/update/"+metricType+"/"+metricName+"/"+metricValue, bytes.NewBuffer(body))
+type Metrics struct {
+	ID    string   `json:"id"`              // имя метрики
+	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
+	Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
+	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
+}
+
+func sendMetric(client http.Client, metric Metrics) error {
+	body, err := json.Marshal(metric)
+	if err != nil {
+		panic(err)
+	}
+
+	request, err := http.NewRequest(http.MethodPost, "http://localhost:8080/update/", bytes.NewBuffer(body))
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -36,13 +47,20 @@ func sendMetric(client http.Client, metricType string, metricName string, metric
 		fmt.Println(errC)
 		return errC
 	}
+
+	var metricResp Metrics
+	errR := json.NewDecoder(resp.Body).Decode(&metricResp)
+	if errR != nil {
+		fmt.Println(errR)
+	}
+	fmt.Println(metricResp)
 	resp.Body.Close()
 	return nil
 }
 
 func MonitorMetrics() {
 	var trackedMetrics []string
-	var metricVal string
+	var metricVal float64
 	trackedMetrics = []string{
 		"Alloc",
 		"BuckHashSys",
@@ -76,7 +94,7 @@ func MonitorMetrics() {
 	}
 	client := http.Client{}
 
-	metrics := metrics{}
+	metrics := MetricsToMonitor{}
 
 	start := time.Now()
 	pollTicker := time.NewTicker(pollInterval * time.Second)
@@ -92,23 +110,41 @@ func MonitorMetrics() {
 				metricValue := reflect.Indirect(reflect.ValueOf(metrics)).FieldByName(metric)
 
 				if metricValue.CanUint() {
-					metricVal = strconv.FormatUint(metricValue.Uint(), 10)
+					metricVal = float64(metricValue.Uint())
 				}
 				if metricValue.CanInt() {
-					metricVal = strconv.FormatInt(metricValue.Int(), 10)
+					metricVal = float64(metricValue.Int())
 				}
 				if metricValue.CanFloat() {
-					metricVal = strconv.FormatFloat(metricValue.Float(), 'g', 5, 64)
+					metricVal = metricValue.Float()
 				}
 
-				if err := sendMetric(client, typeGauge, metric, metricVal); err != nil {
+				metricToSend := Metrics{
+					ID:    metric,
+					MType: typeGauge,
+					Value: &metricVal,
+				}
+
+				if err := sendMetric(client, metricToSend); err != nil {
 					fmt.Println(err)
 				}
 			}
-			if err := sendMetric(client, typeCounter, "PollCount", strconv.Itoa(metrics.PollCount)); err != nil {
+
+			pollCountMetric := Metrics{
+				ID:    "PollCount",
+				MType: typeCounter,
+				Delta: &metrics.PollCount,
+			}
+			if err := sendMetric(client, pollCountMetric); err != nil {
 				fmt.Println(err)
 			}
-			if err := sendMetric(client, typeGauge, "RandomValue", strconv.Itoa(metrics.RandomValue)); err != nil {
+
+			randomValueMetric := Metrics{
+				ID:    "RandomValue",
+				MType: typeCounter,
+				Delta: &metrics.RandomValue,
+			}
+			if err := sendMetric(client, randomValueMetric); err != nil {
 				fmt.Println(err)
 			}
 
@@ -117,7 +153,7 @@ func MonitorMetrics() {
 			fmt.Println(int(y.Sub(start).Seconds()))
 			runtime.ReadMemStats(&metrics.MemStats)
 			metrics.PollCount += 1
-			metrics.RandomValue = rand.Int()
+			metrics.RandomValue = rand.Int63()
 		}
 	}
 
