@@ -1,7 +1,16 @@
 package main
 
-import "yalerting/cmd/app"
+import (
+	"github.com/caarlos0/env/v6"
+	"yalerting/cmd/app"
+)
 
 func main() {
-	app.MonitorMetrics()
+	var cfg app.Config
+	err := env.Parse(&cfg)
+	if err != nil {
+		panic(err)
+	}
+
+	app.MonitorMetrics(cfg)
 }

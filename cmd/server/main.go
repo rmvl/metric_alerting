@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/caarlos0/env/v6"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"net/http"
@@ -9,7 +10,18 @@ import (
 	storageClient "yalerting/cmd/storage"
 )
 
+type config struct {
+	Address string `env:"ADDRESS" envDefault:"127.0.0.1:8080"`
+}
+
 func main() {
+	var cfg config
+	fmt.Println(cfg)
+	err := env.Parse(&cfg)
+	if err != nil {
+		panic(err)
+	}
+
 	storage := storageClient.NewMemStorage()
 
 	r := chi.NewRouter()
@@ -29,7 +41,7 @@ func main() {
 	})
 
 	// запуск сервера с адресом localhost, порт 8080
-	err := http.ListenAndServe(":8080", r)
+	err = http.ListenAndServe(cfg.Address, r)
 	if err != nil {
 		fmt.Println(err)
 	}

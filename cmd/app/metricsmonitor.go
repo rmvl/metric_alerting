@@ -11,11 +11,14 @@ import (
 	"time"
 )
 
-const reportInterval = 10
-const pollInterval = 2
-
 const typeGauge = "gauge"
 const typeCounter = "counter"
+
+type Config struct {
+	Address        string `env:"ADDRESS" envDefault:"http://localhost:8080"`
+	ReportInterval int    `env:"REPORT_INTERVAL" envDefault:"10"`
+	PollInterval   int    `env:"POLL_INTERVAL" envDefault:"2"`
+}
 
 type MetricsToMonitor struct {
 	PollCount   int64
@@ -30,13 +33,13 @@ type Metrics struct {
 	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
 }
 
-func sendMetric(client http.Client, metric Metrics) error {
+func sendMetric(client http.Client, metric Metrics, cfg Config) error {
 	body, err := json.Marshal(metric)
 	if err != nil {
 		panic(err)
 	}
 
-	request, err := http.NewRequest(http.MethodPost, "http://localhost:8080/update/", bytes.NewBuffer(body))
+	request, err := http.NewRequest(http.MethodPost, cfg.Address+"/update/", bytes.NewBuffer(body))
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -58,7 +61,7 @@ func sendMetric(client http.Client, metric Metrics) error {
 	return nil
 }
 
-func MonitorMetrics() {
+func MonitorMetrics(cfg Config) {
 	var trackedMetrics []string
 	var metricVal float64
 	trackedMetrics = []string{
@@ -97,9 +100,9 @@ func MonitorMetrics() {
 	metrics := MetricsToMonitor{}
 
 	start := time.Now()
-	pollTicker := time.NewTicker(pollInterval * time.Second)
+	pollTicker := time.NewTicker(time.Duration(cfg.PollInterval) * time.Second)
 	defer pollTicker.Stop()
-	reportTicker := time.NewTicker(reportInterval * time.Second)
+	reportTicker := time.NewTicker(time.Duration(cfg.ReportInterval) * time.Second)
 	defer reportTicker.Stop()
 
 	for {
@@ -125,7 +128,7 @@ func MonitorMetrics() {
 					Value: &metricVal,
 				}
 
-				if err := sendMetric(client, metricToSend); err != nil {
+				if err := sendMetric(client, metricToSend, cfg); err != nil {
 					fmt.Println(err)
 				}
 			}
@@ -135,7 +138,7 @@ func MonitorMetrics() {
 				MType: typeCounter,
 				Delta: &metrics.PollCount,
 			}
-			if err := sendMetric(client, pollCountMetric); err != nil {
+			if err := sendMetric(client, pollCountMetric, cfg); err != nil {
 				fmt.Println(err)
 			}
 
@@ -144,7 +147,7 @@ func MonitorMetrics() {
 				MType: typeCounter,
 				Delta: &metrics.RandomValue,
 			}
-			if err := sendMetric(client, randomValueMetric); err != nil {
+			if err := sendMetric(client, randomValueMetric, cfg); err != nil {
 				fmt.Println(err)
 			}
 
