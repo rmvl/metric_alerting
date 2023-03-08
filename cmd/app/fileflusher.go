@@ -27,8 +27,7 @@ func FlushMetrics(storage storageRepository.StorageRepository, cfg ServerConfig)
 	defer producer.Close()
 
 	for {
-		select {
-		case <-flusherIntervalTicker.C:
+		for range flusherIntervalTicker.C {
 			fmt.Println("flush metrics", storage)
 			for k, v := range storage.GetCounters() {
 				fmt.Println(k, v)
