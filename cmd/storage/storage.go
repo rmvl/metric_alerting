@@ -9,6 +9,8 @@ type StorageRepository interface {
 	SetGaugeMetric(name string, value string)
 	IncrementCounter(name string, value int64)
 	GetList() map[string]string
+	GetCounters() map[string]int64
+	GetGaugeMetrics() map[string]string
 	GetCounterMetric(metricName string) (int64, bool)
 	GetGaugeMetric(metricName string) (string, bool)
 }
@@ -25,6 +27,14 @@ func NewMemStorage() *MemStorage {
 		make(map[string]int64, 100),
 		sync.RWMutex{},
 	}
+}
+
+func (storage *MemStorage) GetCounters() map[string]int64 {
+	return storage.counters
+}
+
+func (storage *MemStorage) GetGaugeMetrics() map[string]string {
+	return storage.metrics
 }
 
 func (storage *MemStorage) SetGaugeMetric(name string, value string) {

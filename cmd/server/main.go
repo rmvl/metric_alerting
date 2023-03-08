@@ -6,16 +6,13 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"net/http"
+	"yalerting/cmd/app"
 	"yalerting/cmd/handlers"
 	storageClient "yalerting/cmd/storage"
 )
 
-type config struct {
-	Address string `env:"ADDRESS" envDefault:"127.0.0.1:8080"`
-}
-
 func main() {
-	var cfg config
+	var cfg app.ServerConfig
 	fmt.Println(cfg)
 	err := env.Parse(&cfg)
 	if err != nil {
@@ -23,6 +20,11 @@ func main() {
 	}
 
 	storage := storageClient.NewMemStorage()
+
+	// restore metrics from file
+	if cfg.Restore {
+		app.RestoreMetrics(storage, cfg)
+	}
 
 	r := chi.NewRouter()
 
@@ -45,4 +47,7 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	// flush metrics to file
+	app.FlushMetrics(storage, cfg)
 }
