@@ -45,6 +45,9 @@ func (storage *MemStorage) IncrementCounter(name string, value uint64) {
 }
 
 func (storage *MemStorage) GetMetric(name string, metricType string) (string, bool) {
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
+
 	if metricType == "counter" {
 		val, ok := storage.counters[name]
 		if !ok {
