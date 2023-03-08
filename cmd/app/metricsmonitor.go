@@ -14,12 +14,6 @@ import (
 const typeGauge = "gauge"
 const typeCounter = "counter"
 
-type Config struct {
-	Address        string `env:"ADDRESS" envDefault:"http://localhost:8080"`
-	ReportInterval int    `env:"REPORT_INTERVAL" envDefault:"10"`
-	PollInterval   int    `env:"POLL_INTERVAL" envDefault:"2"`
-}
-
 type MetricsToMonitor struct {
 	PollCount   int64
 	RandomValue int64
@@ -33,7 +27,7 @@ type Metrics struct {
 	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
 }
 
-func sendMetric(client http.Client, metric Metrics, cfg Config) error {
+func sendMetric(client http.Client, metric Metrics, cfg AgentConfig) error {
 	body, err := json.Marshal(metric)
 	if err != nil {
 		panic(err)
@@ -61,7 +55,7 @@ func sendMetric(client http.Client, metric Metrics, cfg Config) error {
 	return nil
 }
 
-func MonitorMetrics(cfg Config) {
+func MonitorMetrics(cfg AgentConfig) {
 	var trackedMetrics []string
 	var metricVal float64
 	trackedMetrics = []string{

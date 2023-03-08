@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	var cfg app.Config
+	var cfg app.AgentConfig
 	err := env.Parse(&cfg)
 	if err != nil {
 		panic(err)
