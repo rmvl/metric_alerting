@@ -46,13 +46,13 @@ func (storage *MemStorage) GetGaugeMetrics() map[string]string {
 
 func (storage *MemStorage) SetGaugeMetric(name string, value string) {
 	storage.Mutex.Lock()
-	storage.Mutex.Unlock()
+	defer storage.Mutex.Unlock()
 	storage.metrics[name] = value
 }
 
 func (storage *MemStorage) IncrementCounter(name string, value int64) {
 	storage.Mutex.Lock()
-	storage.Mutex.Unlock()
+	defer storage.Mutex.Unlock()
 
 	_, ok := storage.counters[name]
 	if !ok {
