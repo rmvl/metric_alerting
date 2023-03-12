@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 	storageRepository "yalerting/cmd/storage"
 )
@@ -17,7 +18,8 @@ type metric struct {
 }
 
 func FlushMetrics(storage storageRepository.StorageRepository, cfg ServerConfig) {
-	flusherIntervalTicker := time.NewTicker(time.Duration(cfg.StoreInterval) * time.Second)
+	reportInterval, _ := strconv.Atoi(strings.TrimSuffix(cfg.StoreInterval, "s"))
+	flusherIntervalTicker := time.NewTicker(time.Duration(reportInterval) * time.Second)
 
 	fileName := cfg.StoreFile
 	producer, err := NewProducer(fileName)
