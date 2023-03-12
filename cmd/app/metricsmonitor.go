@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
-	"reflect"
 	"runtime"
 	"time"
 )
@@ -53,45 +52,45 @@ func sendMetric(client http.Client, metric Metrics) error {
 	if errR != nil {
 		fmt.Println(errR)
 	}
-	fmt.Println(metricResp)
+	fmt.Println(*metricResp.Value)
 	resp.Body.Close()
 	return nil
 }
 
 func MonitorMetrics() {
-	var trackedMetrics []string
-	var metricVal float64
-	trackedMetrics = []string{
-		"Alloc",
-		"BuckHashSys",
-		"Frees",
-		"GCCPUFraction",
-		"GCSys",
-		"HeapAlloc",
-		"HeapIdle",
-		"HeapInuse",
-		"HeapObjects",
-		"HeapReleased",
-		"HeapSys",
-		"LastGC",
-		"Lookups",
-		"MCacheInuse",
-		"MCacheSys",
-		"MSpanInuse",
-		"MSpanSys",
-		"Mallocs",
-		"NextGC",
-		"NumForcedGC",
-		"NumGC",
-		"OtherSys",
-		"PauseTotalNs",
-		"StackInuse",
-		"StackSys",
-		"Sys",
-		"TotalAlloc",
-		"PollCount",
-		"RandomValue",
-	}
+	//var trackedMetrics []string
+	//var metricVal float64
+	//trackedMetrics = []string{
+	//	"Alloc",
+	//	"BuckHashSys",
+	//	"Frees",
+	//	"GCCPUFraction",
+	//	"GCSys",
+	//	"HeapAlloc",
+	//	"HeapIdle",
+	//	"HeapInuse",
+	//	"HeapObjects",
+	//	"HeapReleased",
+	//	"HeapSys",
+	//	"LastGC",
+	//	"Lookups",
+	//	"MCacheInuse",
+	//	"MCacheSys",
+	//	"MSpanInuse",
+	//	"MSpanSys",
+	//	"Mallocs",
+	//	"NextGC",
+	//	"NumForcedGC",
+	//	"NumGC",
+	//	"OtherSys",
+	//	"PauseTotalNs",
+	//	"StackInuse",
+	//	"StackSys",
+	//	"Sys",
+	//	"TotalAlloc",
+	//	"PollCount",
+	//	"RandomValue",
+	//}
 	client := http.Client{}
 
 	metrics := MetricsToMonitor{}
@@ -106,47 +105,60 @@ func MonitorMetrics() {
 		select {
 		case x := <-reportTicker.C:
 			fmt.Println(int(x.Sub(start).Seconds()))
-			for _, metric := range trackedMetrics {
-				metricValue := reflect.Indirect(reflect.ValueOf(metrics)).FieldByName(metric)
 
-				if metricValue.CanUint() {
-					metricVal = float64(metricValue.Uint())
-				}
-				if metricValue.CanInt() {
-					metricVal = float64(metricValue.Int())
-				}
-				if metricValue.CanFloat() {
-					metricVal = metricValue.Float()
-				}
-
-				metricToSend := Metrics{
-					ID:    metric,
-					MType: typeGauge,
-					Value: &metricVal,
-				}
-
-				if err := sendMetric(client, metricToSend); err != nil {
-					fmt.Println(err)
-				}
+			m := 494691.516772
+			metricToSend := Metrics{
+				ID:    "NextGC",
+				MType: typeGauge,
+				Value: &m,
 			}
-
-			pollCountMetric := Metrics{
-				ID:    "PollCount",
-				MType: typeCounter,
-				Delta: &metrics.PollCount,
-			}
-			if err := sendMetric(client, pollCountMetric); err != nil {
+			if err := sendMetric(client, metricToSend); err != nil {
 				fmt.Println(err)
 			}
 
-			randomValueMetric := Metrics{
-				ID:    "RandomValue",
-				MType: typeCounter,
-				Delta: &metrics.RandomValue,
-			}
-			if err := sendMetric(client, randomValueMetric); err != nil {
-				fmt.Println(err)
-			}
+			//
+			//fmt.Println(int(x.Sub(start).Seconds()))
+			//for _, metric := range trackedMetrics {
+			//	metricValue := reflect.Indirect(reflect.ValueOf(metrics)).FieldByName(metric)
+			//
+			//	if metricValue.CanUint() {
+			//		metricVal = float64(metricValue.Uint())
+			//	}
+			//	if metricValue.CanInt() {
+			//		metricVal = float64(metricValue.Int())
+			//	}
+			//	if metricValue.CanFloat() {
+			//		metricVal = metricValue.Float()
+			//	}
+			//
+			//	metricToSend := Metrics{
+			//		ID:    metric,
+			//		MType: typeGauge,
+			//		Value: &metricVal,
+			//	}
+			//
+			//	if err := sendMetric(client, metricToSend); err != nil {
+			//		fmt.Println(err)
+			//	}
+			//}
+			//
+			//pollCountMetric := Metrics{
+			//	ID:    "PollCount",
+			//	MType: typeCounter,
+			//	Delta: &metrics.PollCount,
+			//}
+			//if err := sendMetric(client, pollCountMetric); err != nil {
+			//	fmt.Println(err)
+			//}
+			//
+			//randomValueMetric := Metrics{
+			//	ID:    "RandomValue",
+			//	MType: typeCounter,
+			//	Delta: &metrics.RandomValue,
+			//}
+			//if err := sendMetric(client, randomValueMetric); err != nil {
+			//	fmt.Println(err)
+			//}
 
 			metrics.PollCount = 0
 		case y := <-pollTicker.C:
