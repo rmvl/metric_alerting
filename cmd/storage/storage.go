@@ -13,6 +13,7 @@ type StorageRepository interface {
 	GetGaugeMetrics() map[string]string
 	GetCounterMetric(metricName string) (int64, bool)
 	GetGaugeMetric(metricName string) (string, bool)
+	GetMetric(metricName string, metricType string) (string, bool)
 }
 
 type MemStorage struct {
@@ -56,6 +57,9 @@ func (storage *MemStorage) IncrementCounter(name string, value int64) {
 }
 
 func (storage *MemStorage) GetCounterMetric(name string) (int64, bool) {
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
+
 	val, ok := storage.counters[name]
 	if !ok {
 		return 0, false
@@ -65,12 +69,40 @@ func (storage *MemStorage) GetCounterMetric(name string) (int64, bool) {
 }
 
 func (storage *MemStorage) GetGaugeMetric(name string) (string, bool) {
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
+
 	val, ok := storage.metrics[name]
 	if !ok {
 		return "", false
 	}
 
 	return val, true
+}
+
+func (storage *MemStorage) GetMetric(name string, metricType string) (string, bool) {
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
+
+	if metricType == "counter" {
+		val, ok := storage.counters[name]
+		if !ok {
+			return "", false
+		}
+
+		return strconv.FormatInt(val, 10), true
+	}
+
+	if metricType == "gauge" {
+		val, ok := storage.metrics[name]
+		if !ok {
+			return "", false
+		}
+
+		return val, true
+	}
+
+	return "", false
 }
 
 func (storage *MemStorage) GetList() map[string]string {
