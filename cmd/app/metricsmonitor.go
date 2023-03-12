@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"reflect"
 	"runtime"
-	"strconv"
-	"strings"
 	"time"
 )
 
@@ -97,12 +95,10 @@ func MonitorMetrics(cfg AgentConfig) {
 
 	start := time.Now()
 
-	pollInterval, _ := strconv.Atoi(strings.TrimSuffix(cfg.PollInterval, "s"))
-	pollTicker := time.NewTicker(time.Duration(pollInterval) * time.Second)
+	pollTicker := time.NewTicker(time.Duration(cfg.GetPollInterval()) * time.Second)
 	defer pollTicker.Stop()
 
-	reportInterval, _ := strconv.Atoi(strings.TrimSuffix(cfg.ReportInterval, "s"))
-	reportTicker := time.NewTicker(time.Duration(reportInterval) * time.Second)
+	reportTicker := time.NewTicker(time.Duration(cfg.GetReportInterval()) * time.Second)
 	defer reportTicker.Stop()
 
 	for {

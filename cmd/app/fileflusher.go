@@ -6,14 +6,12 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 	storageRepository "yalerting/cmd/storage"
 )
 
 func FlushMetrics(storage storageRepository.StorageRepository, cfg ServerConfig) {
-	storeInterval, _ := strconv.Atoi(strings.TrimSuffix(cfg.StoreInterval, "s"))
-	flusherIntervalTicker := time.NewTicker(time.Duration(storeInterval) * time.Second)
+	flusherIntervalTicker := time.NewTicker(time.Duration(cfg.GetStoreInterval()) * time.Second)
 
 	fileName := cfg.StoreFile
 

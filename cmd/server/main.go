@@ -6,7 +6,6 @@ import (
 	"github.com/caarlos0/env/v6"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"net"
 	"net/http"
 	"yalerting/cmd/app"
 	"yalerting/cmd/handlers"
@@ -21,7 +20,7 @@ func main() {
 	}
 	flag.StringVar(&cfg.Address, "a", cfg.Address, "server address")
 	flag.BoolVar(&cfg.Restore, "r", cfg.Restore, "need to restore from file")
-	flag.IntVar(&cfg.StoreInterval, "i", cfg.StoreInterval, "store interval")
+	flag.StringVar(&cfg.StoreInterval, "i", cfg.StoreInterval, "store interval")
 	flag.StringVar(&cfg.StoreFile, "f", cfg.StoreFile, "store file")
 
 	storage := storageClient.NewMemStorage()
