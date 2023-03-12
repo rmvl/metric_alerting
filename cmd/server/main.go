@@ -5,7 +5,6 @@ import (
 	"github.com/caarlos0/env/v6"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"log"
 	"net/http"
 	"yalerting/cmd/app"
 	"yalerting/cmd/handlers"
@@ -21,14 +20,6 @@ func main() {
 	fmt.Println(cfg)
 
 	storage := storageClient.NewMemStorage()
-
-	// restore metrics from file
-	if cfg.Restore {
-		go app.RestoreMetrics(storage, cfg)
-	}
-
-	// flush metrics to file
-	go app.FlushMetrics(storage, cfg)
 
 	r := chi.NewRouter()
 
@@ -52,8 +43,17 @@ func main() {
 	})
 
 	// запуск сервера с адресом localhost, порт 8080
-	log.Fatal(http.ListenAndServe(cfg.Address, r))
-	//if err != nil {
-	//	fmt.Println(err)
-	//}
+	err = http.ListenAndServe(cfg.Address, r)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// restore metrics from file
+	if cfg.Restore {
+		go app.RestoreMetrics(storage, cfg)
+	}
+
+	// flush metrics to file
+	go app.FlushMetrics(storage, cfg)
+
 }
