@@ -11,7 +11,7 @@ import (
 )
 
 type config struct {
-	Address string `env:"ADDRESS" envDefault:"127.0.0.1:8080"`
+	Address string `env:"ADDRESS" envDefault:"http://localhost:8080"`
 }
 
 func main() {
