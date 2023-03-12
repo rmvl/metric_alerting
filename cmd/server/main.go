@@ -6,6 +6,7 @@ import (
 	"github.com/caarlos0/env/v6"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"net"
 	"net/http"
 	"yalerting/cmd/app"
 	"yalerting/cmd/handlers"
@@ -14,7 +15,6 @@ import (
 
 func main() {
 	var cfg app.ServerConfig
-	fmt.Println(cfg)
 	err := env.Parse(&cfg)
 	if err != nil {
 		panic(err)
@@ -26,10 +26,11 @@ func main() {
 
 	storage := storageClient.NewMemStorage()
 
-	// restore metrics from file
 	if cfg.Restore {
 		app.RestoreMetrics(storage, cfg)
 	}
+	//flush metrics to file
+	go app.FlushMetrics(storage, cfg)
 
 	r := chi.NewRouter()
 
@@ -57,7 +58,4 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-
-	// flush metrics to file
-	app.FlushMetrics(storage, cfg)
 }

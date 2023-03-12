@@ -6,31 +6,26 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 	storageRepository "yalerting/cmd/storage"
 )
 
-type metric struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
-	Type  string `json:"type"`
-}
-
 func FlushMetrics(storage storageRepository.StorageRepository, cfg ServerConfig) {
-	flusherIntervalTicker := time.NewTicker(time.Duration(cfg.StoreInterval) * time.Second)
+	storeInterval, _ := strconv.Atoi(strings.TrimSuffix(cfg.StoreInterval, "s"))
+	flusherIntervalTicker := time.NewTicker(time.Duration(storeInterval) * time.Second)
 
 	fileName := cfg.StoreFile
-	producer, err := NewProducer(fileName)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer producer.Close()
 
 	for {
 		for range flusherIntervalTicker.C {
+			producer, err := NewProducer(fileName)
+			if err != nil {
+				log.Fatal(err)
+			}
+
 			fmt.Println("flush metrics", storage)
 			for k, v := range storage.GetCounters() {
-				fmt.Println(k, v)
 				event := Metrics{ID: k, Delta: &v, MType: "counter"}
 				if err := producer.WriteEvent(event); err != nil {
 					log.Fatal(err)
@@ -38,7 +33,6 @@ func FlushMetrics(storage storageRepository.StorageRepository, cfg ServerConfig)
 			}
 
 			for k, v := range storage.GetGaugeMetrics() {
-				fmt.Println(k, v)
 				floatVal, _ := strconv.ParseFloat(v, 64)
 				if err != nil {
 					fmt.Println(err)
@@ -50,6 +44,8 @@ func FlushMetrics(storage storageRepository.StorageRepository, cfg ServerConfig)
 					log.Fatal(err)
 				}
 			}
+
+			producer.Close()
 		}
 	}
 }
@@ -73,7 +69,7 @@ func RestoreMetrics(storage storageRepository.StorageRepository, cfg ServerConfi
 		case "counter":
 			storage.IncrementCounter(metric.ID, *metric.Delta)
 		case "gauge":
-			storage.SetGaugeMetric(metric.ID, strconv.FormatFloat(*metric.Value, 'g', 5, 64))
+			storage.SetGaugeMetric(metric.ID, strconv.FormatFloat(*metric.Value, 'g', -1, 64))
 		default:
 			fmt.Println("not supported metric type")
 			return
@@ -88,6 +84,14 @@ type producer struct {
 
 func NewProducer(fileName string) (*producer, error) {
 	file, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
+	if err != nil {
+		return nil, err
+	}
+	err = file.Truncate(0)
+	if err != nil {
+		return nil, err
+	}
+	_, err = file.Seek(0, 0)
 	if err != nil {
 		return nil, err
 	}

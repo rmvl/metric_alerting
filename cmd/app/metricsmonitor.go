@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"reflect"
 	"runtime"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -33,7 +35,7 @@ func sendMetric(client http.Client, metric Metrics, cfg AgentConfig) error {
 		panic(err)
 	}
 
-	request, err := http.NewRequest(http.MethodPost, cfg.Address+"/update/", bytes.NewBuffer(body))
+	request, err := http.NewRequest(http.MethodPost, "http://"+cfg.Address+"/update/", bytes.NewBuffer(body))
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -94,9 +96,13 @@ func MonitorMetrics(cfg AgentConfig) {
 	metrics := MetricsToMonitor{}
 
 	start := time.Now()
-	pollTicker := time.NewTicker(time.Duration(cfg.PollInterval) * time.Second)
+
+	pollInterval, _ := strconv.Atoi(strings.TrimSuffix(cfg.PollInterval, "s"))
+	pollTicker := time.NewTicker(time.Duration(pollInterval) * time.Second)
 	defer pollTicker.Stop()
-	reportTicker := time.NewTicker(time.Duration(cfg.ReportInterval) * time.Second)
+
+	reportInterval, _ := strconv.Atoi(strings.TrimSuffix(cfg.ReportInterval, "s"))
+	reportTicker := time.NewTicker(time.Duration(reportInterval) * time.Second)
 	defer reportTicker.Stop()
 
 	for {
