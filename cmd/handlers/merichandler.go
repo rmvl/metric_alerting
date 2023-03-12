@@ -142,7 +142,7 @@ func GetMetricInJSON(storage storageRepository.StorageRepository) http.HandlerFu
 			rw.Write([]byte(""))
 			return
 		}
-		rw.Header().Set("Content-Type", "text/html")
+		rw.Header().Set("Content-Type", "application/json")
 
 		switch metric.MType {
 		case "counter":
