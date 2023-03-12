@@ -123,7 +123,7 @@ func TestMetricList(t *testing.T) {
 			request: "/",
 			storage: func() storageClient.StorageRepository {
 				storage := storageClient.NewMemStorage()
-				storage.IncrementCounter("PollCount", 300)
+				storage.IncrementCounter("PollCount", 300, true)
 				return storage
 			}(),
 		},
@@ -184,7 +184,7 @@ func TestGetJSON(t *testing.T) {
 			metricReq: app.Metrics{ID: "PollCount", MType: "counter"},
 			storage: func() storageClient.StorageRepository {
 				storage := storageClient.NewMemStorage()
-				storage.IncrementCounter("PollCount", delta)
+				storage.IncrementCounter("PollCount", delta, true)
 				return storage
 			}(),
 		},
@@ -198,7 +198,7 @@ func TestGetJSON(t *testing.T) {
 			},
 			storage: func() storageClient.StorageRepository {
 				storage := storageClient.NewMemStorage()
-				storage.SetGaugeMetric("Alloc", "300.123")
+				storage.SetGaugeMetric("Alloc", "300.123", true)
 				return storage
 			}(),
 		},
@@ -315,7 +315,7 @@ func TestGet(t *testing.T) {
 			metricValue: "PollCount",
 			storage: func() storageClient.StorageRepository {
 				storage := storageClient.NewMemStorage()
-				storage.IncrementCounter("PollCount", 300)
+				storage.IncrementCounter("PollCount", 300, true)
 				return storage
 			}(),
 		},

@@ -61,7 +61,7 @@ func main() {
 		fmt.Println(err)
 	}
 
-	flush metrics to file
+	//flush metrics to file
 	//app.FlushMetrics(storage, cfg)
 }
 
@@ -71,7 +71,7 @@ func createListener(cfg app.ServerConfig, storage storageClient.StorageRepositor
 		return nil, err
 	}
 	if cfg.Restore {
-		app.RestoreMetrics(storage, cfg)
+		go app.RestoreMetrics(storage, cfg)
 	}
 
 	// flush metrics to file

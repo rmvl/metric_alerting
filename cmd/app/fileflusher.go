@@ -22,8 +22,8 @@ func FlushMetrics(storage storageRepository.StorageRepository, cfg ServerConfig)
 	//mtx.Lock()
 	//defer mtx.Unlock()
 
-	reportInterval, _ := strconv.Atoi(strings.TrimSuffix(cfg.StoreInterval, "s"))
-	flusherIntervalTicker := time.NewTicker(time.Duration(reportInterval) * time.Second)
+	storeInterval, _ := strconv.Atoi(strings.TrimSuffix(cfg.StoreInterval, "s"))
+	flusherIntervalTicker := time.NewTicker(time.Duration(storeInterval) * time.Second)
 
 	fileName := cfg.StoreFile
 	producer, err := NewProducer(fileName)
