@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
 	"yalerting/cmd/app"
@@ -9,6 +10,54 @@ import (
 )
 
 func UpdateMetric(storage storageRepository.StorageRepository) http.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) {
+		metricName := chi.URLParam(r, "metricName")
+		metricType := chi.URLParam(r, "metricType")
+		metricValue := chi.URLParam(r, "metricValue")
+
+		if metricName == "" {
+			http.Error(rw, "metricName param is missed", http.StatusBadRequest)
+			return
+		}
+		if metricType == "" {
+			http.Error(rw, "metricType param is missed", http.StatusBadRequest)
+			return
+		}
+		if metricValue == "" {
+			http.Error(rw, "metricValue param is missed", http.StatusBadRequest)
+			return
+		}
+
+		if metricType != "counter" && metricType != "gauge" {
+			http.Error(rw, "metricType param is invalid", http.StatusNotImplemented)
+			return
+		}
+
+		switch metricType {
+		case "counter":
+			if s, err := strconv.ParseInt(metricValue, 10, 64); err == nil {
+				storage.IncrementCounter(metricName, s)
+			} else {
+				http.Error(rw, "metricValue param is not int64", http.StatusBadRequest)
+				return
+			}
+		case "gauge":
+			if _, err := strconv.ParseFloat(metricValue, 64); err == nil {
+				storage.SetGaugeMetric(metricName, metricValue)
+			} else {
+				http.Error(rw, "metricValue param is not float 64", http.StatusBadRequest)
+				return
+			}
+		default:
+			http.Error(rw, "Unsupported metricType"+metricType, http.StatusBadRequest)
+			return
+		}
+
+		rw.WriteHeader(http.StatusOK)
+	}
+}
+
+func UpdateMetricByJsonData(storage storageRepository.StorageRepository) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		rw.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
