@@ -1,3 +1,7 @@
 package main
 
-func main() {}
+import "yalerting/cmd/app"
+
+func main() {
+	app.MonitorMetrics()
+}
