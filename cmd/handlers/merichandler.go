@@ -57,7 +57,7 @@ func UpdateMetric(storage storageRepository.StorageRepository) http.HandlerFunc 
 	}
 }
 
-func UpdateMetricByJsonData(storage storageRepository.StorageRepository) http.HandlerFunc {
+func UpdateMetricByJSONData(storage storageRepository.StorageRepository) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		rw.Header().Set("Content-Type", "application/json; charset=UTF-8")
 

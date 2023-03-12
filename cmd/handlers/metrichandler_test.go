@@ -63,7 +63,7 @@ func TestUpdateMetric(t *testing.T) {
 
 			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
 
-			h := http.HandlerFunc(UpdateMetricByJsonData(storage))
+			h := http.HandlerFunc(UpdateMetricByJSONData(storage))
 			h(w, request)
 			result := w.Result()
 			defer result.Body.Close()

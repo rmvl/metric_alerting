@@ -25,7 +25,7 @@ func main() {
 	})
 
 	r.Route("/update", func(r chi.Router) {
-		r.Post("/", handlers.UpdateMetricByJsonData(storage))
+		r.Post("/", handlers.UpdateMetricByJSONData(storage))
 		r.Post("/{metricType}/{metricName}/{metricValue}", handlers.UpdateMetric(storage))
 	})
 
