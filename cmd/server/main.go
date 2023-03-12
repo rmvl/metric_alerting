@@ -21,7 +21,7 @@ func main() {
 
 	r.Route("/", func(r chi.Router) {
 		r.Get("/", handlers.MetricList(storage))
-		r.Get("/value", handlers.GetMetric(storage))
+		r.Get("/value", handlers.GetMetricInJSON(storage))
 		r.Get("/value/{metricType}/{metricName}", handlers.GetMetric(storage))
 	})
 

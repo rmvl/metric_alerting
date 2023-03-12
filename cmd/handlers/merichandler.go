@@ -117,7 +117,7 @@ func MetricList(storage storageRepository.StorageRepository) http.HandlerFunc {
 	}
 }
 
-func GetMetric(storage storageRepository.StorageRepository) http.HandlerFunc {
+func GetMetricInJSON(storage storageRepository.StorageRepository) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		rw.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -180,5 +180,37 @@ func GetMetric(storage storageRepository.StorageRepository) http.HandlerFunc {
 			return
 		}
 		rw.Write(body)
+	}
+}
+
+func GetMetric(storage storageRepository.StorageRepository) http.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) {
+		metricName := chi.URLParam(r, "metricName")
+		metricType := chi.URLParam(r, "metricType")
+		if metricType == "" {
+			http.Error(rw, "metricType param is missed", http.StatusBadRequest)
+			return
+		}
+		if metricName == "" {
+			http.Error(rw, "metricName param is missed", http.StatusBadRequest)
+			return
+		}
+
+		if metricType == "" || metricName == "" {
+			rw.WriteHeader(http.StatusNotFound)
+			rw.Write([]byte(""))
+			return
+		}
+		rw.Header().Set("Content-Type", "text/html")
+
+		metrivVal, ok := storage.GetMetric(metricName, metricType)
+		if !ok {
+			rw.WriteHeader(http.StatusNotFound)
+			rw.Write([]byte(""))
+			return
+		}
+
+		rw.WriteHeader(http.StatusOK)
+		rw.Write([]byte(metrivVal))
 	}
 }

@@ -214,7 +214,7 @@ func TestGet(t *testing.T) {
 
 			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
 
-			h := http.HandlerFunc(GetMetric(tt.storage))
+			h := http.HandlerFunc(GetMetricInJSON(tt.storage))
 			h(w, request)
 			result := w.Result()
 			err := result.Body.Close()
@@ -277,7 +277,7 @@ func TestGetFail(t *testing.T) {
 
 			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
 
-			h := http.HandlerFunc(GetMetric(tt.storage))
+			h := http.HandlerFunc(GetMetricInJSON(tt.storage))
 			h(w, request)
 			result := w.Result()
 			err := result.Body.Close()
