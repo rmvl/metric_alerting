@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/caarlos0/env/v6"
 	"yalerting/cmd/app"
 )
@@ -11,6 +12,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Println(cfg)
 
 	app.MonitorMetrics(cfg)
 }
