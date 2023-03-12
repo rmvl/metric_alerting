@@ -22,6 +22,7 @@ func main() {
 	flag.BoolVar(&cfg.Restore, "r", cfg.Restore, "need to restore from file")
 	flag.StringVar(&cfg.StoreInterval, "i", cfg.StoreInterval, "store interval")
 	flag.StringVar(&cfg.StoreFile, "f", cfg.StoreFile, "store file")
+	flag.Parse()
 
 	storage := storageClient.NewMemStorage()
 
