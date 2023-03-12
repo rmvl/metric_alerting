@@ -22,6 +22,14 @@ func main() {
 
 	storage := storageClient.NewMemStorage()
 
+	// restore metrics from file
+	if cfg.Restore {
+		go app.RestoreMetrics(storage, cfg)
+	}
+
+	// flush metrics to file
+	go app.FlushMetrics(storage, cfg)
+
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -48,12 +56,4 @@ func main() {
 	//if err != nil {
 	//	fmt.Println(err)
 	//}
-
-	// restore metrics from file
-	if cfg.Restore {
-		go app.RestoreMetrics(storage, cfg)
-	}
-
-	// flush metrics to file
-	go app.FlushMetrics(storage, cfg)
 }
