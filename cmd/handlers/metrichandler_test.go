@@ -156,7 +156,7 @@ func TestMetricList(t *testing.T) {
 	}
 }
 
-func TestGet(t *testing.T) {
+func TestGetJSON(t *testing.T) {
 	type want struct {
 		contentType string
 		statusCode  int
@@ -240,7 +240,7 @@ func TestGet(t *testing.T) {
 	}
 }
 
-func TestGetFail(t *testing.T) {
+func TestGetFailJSON(t *testing.T) {
 	type want struct {
 		contentType string
 		statusCode  int
@@ -286,6 +286,85 @@ func TestGetFail(t *testing.T) {
 			// проверяем код ответа
 			if result.StatusCode != tt.want.statusCode {
 				t.Errorf("Expected status code %d, got %d", tt.want.statusCode, w.Code)
+			}
+		})
+	}
+}
+
+func TestGet(t *testing.T) {
+	type want struct {
+		contentType string
+		statusCode  int
+		content     string
+	}
+	tests := []struct {
+		name        string
+		metricType  string
+		metricValue string
+		storage     storageClient.StorageRepository
+		want        want
+	}{
+		{
+			name: "simple test #1",
+			want: want{
+				contentType: "application/json",
+				statusCode:  200,
+				content:     "300",
+			},
+			metricType:  "counter",
+			metricValue: "PollCount",
+			storage: func() storageClient.StorageRepository {
+				storage := storageClient.NewMemStorage()
+				storage.IncrementCounter("PollCount", 300)
+				return storage
+			}(),
+		},
+		{
+			name: "simple test #2",
+			want: want{
+				contentType: "application/json",
+				statusCode:  404,
+				content:     "",
+			},
+			metricType:  "counter",
+			metricValue: "PollCount",
+			storage: func() storageClient.StorageRepository {
+				storage := storageClient.NewMemStorage()
+				return storage
+			}(),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			method := "/value/" + tt.metricType + "/" + tt.metricValue
+			request := httptest.NewRequest(http.MethodGet, method, nil)
+
+			w := httptest.NewRecorder()
+			rctx := chi.NewRouteContext()
+			rctx.URLParams.Add("metricType", "counter")
+			rctx.URLParams.Add("metricName", "PollCount")
+
+			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
+
+			h := http.HandlerFunc(GetMetric(tt.storage))
+			h(w, request)
+			result := w.Result()
+			err := result.Body.Close()
+			require.NoError(t, err)
+
+			data, err := io.ReadAll(result.Body)
+			require.NoError(t, err)
+
+			metricList := string(data)
+
+			require.NoError(t, err)
+
+			// проверяем код ответа
+			if result.StatusCode != tt.want.statusCode {
+				t.Errorf("Expected status code %d, got %d", tt.want.statusCode, w.Code)
+			}
+			if metricList != tt.want.content {
+				t.Errorf("Expected response body %s, got %s", tt.want.content, metricList)
 			}
 		})
 	}

@@ -86,7 +86,7 @@ func UpdateMetricByJSONData(storage storageRepository.StorageRepository) http.Ha
 		case "counter":
 			storage.IncrementCounter(metric.ID, *metric.Delta)
 		case "gauge":
-			storage.SetGaugeMetric(metric.ID, strconv.FormatFloat(*metric.Value, 'g', 5, 64))
+			storage.SetGaugeMetric(metric.ID, strconv.FormatFloat(*metric.Value, 'g', -1, 64))
 		default:
 			http.Error(rw, "Unsupported metricType"+metric.MType, http.StatusBadRequest)
 			return
