@@ -13,11 +13,11 @@ import (
 
 func main() {
 	var cfg app.ServerConfig
-	fmt.Println(cfg)
 	err := env.Parse(&cfg)
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println(cfg)
 
 	storage := storageClient.NewMemStorage()
 
