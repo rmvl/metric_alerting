@@ -11,16 +11,16 @@ import (
 )
 
 type config struct {
-	Address string `env:"ADDRESS" envDefault:"http://localhost:8080"`
+	Address string `env:"ADDRESS" envDefault:"localhost:8080"`
 }
 
 func main() {
 	var cfg config
-	fmt.Println(cfg)
 	err := env.Parse(&cfg)
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println(cfg)
 
 	storage := storageClient.NewMemStorage()
 

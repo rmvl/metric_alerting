@@ -15,7 +15,7 @@ const typeGauge = "gauge"
 const typeCounter = "counter"
 
 type Config struct {
-	Address        string `env:"ADDRESS" envDefault:"http://localhost:8080"`
+	Address        string `env:"ADDRESS" envDefault:"localhost:8080"`
 	ReportInterval int    `env:"REPORT_INTERVAL" envDefault:"10"`
 	PollInterval   int    `env:"POLL_INTERVAL" envDefault:"2"`
 }
@@ -39,7 +39,7 @@ func sendMetric(client http.Client, metric Metrics, cfg Config) error {
 		panic(err)
 	}
 
-	request, err := http.NewRequest(http.MethodPost, cfg.Address+"/update/", bytes.NewBuffer(body))
+	request, err := http.NewRequest(http.MethodPost, "http://"+cfg.Address+"/update/", bytes.NewBuffer(body))
 	if err != nil {
 		fmt.Println(err)
 	}
