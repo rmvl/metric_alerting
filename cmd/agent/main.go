@@ -14,8 +14,8 @@ func main() {
 	}
 
 	flag.StringVar(&cfg.Address, "a", cfg.Address, "address to send metrics")
-	flag.IntVar(&cfg.ReportInterval, "r", cfg.ReportInterval, "report interval")
-	flag.IntVar(&cfg.PollInterval, "p", cfg.PollInterval, "poll interval")
+	flag.StringVar(&cfg.ReportInterval, "r", cfg.ReportInterval, "report interval")
+	flag.StringVar(&cfg.PollInterval, "p", cfg.PollInterval, "poll interval")
 	flag.Parse()
 
 	app.MonitorMetrics(cfg)

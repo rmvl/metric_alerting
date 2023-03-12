@@ -1,36 +1,52 @@
 package app
 
+import (
+	"fmt"
+	"strconv"
+	"strings"
+)
+
 type AgentConfig struct {
-	Address        string `env:"ADDRESS" envDefault:"http://localhost:8080"`
-	ReportInterval int    `env:"REPORT_INTERVAL" envDefault:"10"`
-	PollInterval   int    `env:"POLL_INTERVAL" envDefault:"2"`
+	Address        string `env:"ADDRESS" envDefault:"localhost:8080"`
+	ReportInterval string `env:"REPORT_INTERVAL" envDefault:"10s"`
+	PollInterval   string `env:"POLL_INTERVAL" envDefault:"2s"`
 }
 
 type ServerConfig struct {
-	Address       string `env:"ADDRESS" envDefault:"127.0.0.1:8080"`
-	StoreInterval int    `env:"STORE_INTERVAL" envDefault:"300"`
-	StoreFile     string `env:"STORE_FILE" envDefault:"/tmp/devops-metrics-db.json"`
+	Address       string `env:"ADDRESS" envDefault:"localhost:8080"`
+	StoreInterval string `env:"STORE_INTERVAL" envDefault:"11s"`
+	StoreFile     string `env:"STORE_FILE" envDefault:"/tmp/devops-metrics-db.2.json"`
 	Restore       bool   `env:"RESTORE" envDefault:"true"`
 }
 
-func init() {
-
+func (cfg *ServerConfig) GetStoreInterval() int {
+	if strings.HasSuffix(cfg.StoreInterval, "s") {
+		storeInterval, err := strconv.Atoi(strings.TrimSuffix(cfg.StoreInterval, "s"))
+		if err != nil {
+			fmt.Println(err)
+		}
+		return storeInterval
+	}
+	if strings.HasSuffix(cfg.StoreInterval, "m") {
+		storeInterval, err := strconv.Atoi(strings.TrimSuffix(cfg.StoreInterval, "m"))
+		if err != nil {
+			fmt.Println(err)
+		}
+		return storeInterval
+	}
+	storeInterval, err := strconv.Atoi(cfg.StoreInterval)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return storeInterval
 }
 
-//AssetsPath := flag.String("assets", os.Getenv("ASSETS_PATH"), "a string")
-//func (a ServerConfig) String() string {
-//	return a.Host + ":" + strconv.Itoa(a.Port)
-//}
-//func (a *NetAddress) Set(s string) error {
-//	hp := strings.Split(s, ":")
-//	if len(hp) != 2 {
-//		return errors.New("Need address in a form host:port")
-//	}
-//	port, err := strconv.Atoi(hp[1])
-//	if err != nil {
-//		return err
-//	}
-//	a.Host = hp[0]
-//	a.Port = port
-//	return nil
-//}
+func (cfg *AgentConfig) GetReportInterval() int {
+	reportInterval, _ := strconv.Atoi(strings.TrimSuffix(cfg.ReportInterval, "s"))
+	return reportInterval
+}
+
+func (cfg *AgentConfig) GetPollInterval() int {
+	pollInterval, _ := strconv.Atoi(strings.TrimSuffix(cfg.PollInterval, "s"))
+	return pollInterval
+}

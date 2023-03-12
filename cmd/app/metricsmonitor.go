@@ -33,7 +33,7 @@ func sendMetric(client http.Client, metric Metrics, cfg AgentConfig) error {
 		panic(err)
 	}
 
-	request, err := http.NewRequest(http.MethodPost, cfg.Address+"/update/", bytes.NewBuffer(body))
+	request, err := http.NewRequest(http.MethodPost, "http://"+cfg.Address+"/update/", bytes.NewBuffer(body))
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -94,9 +94,11 @@ func MonitorMetrics(cfg AgentConfig) {
 	metrics := MetricsToMonitor{}
 
 	start := time.Now()
-	pollTicker := time.NewTicker(time.Duration(cfg.PollInterval) * time.Second)
+
+	pollTicker := time.NewTicker(time.Duration(cfg.GetPollInterval()) * time.Second)
 	defer pollTicker.Stop()
-	reportTicker := time.NewTicker(time.Duration(cfg.ReportInterval) * time.Second)
+
+	reportTicker := time.NewTicker(time.Duration(cfg.GetReportInterval()) * time.Second)
 	defer reportTicker.Stop()
 
 	for {

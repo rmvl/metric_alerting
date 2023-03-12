@@ -15,22 +15,23 @@ import (
 
 func main() {
 	var cfg app.ServerConfig
-	fmt.Println(cfg)
 	err := env.Parse(&cfg)
 	if err != nil {
 		panic(err)
 	}
 	flag.StringVar(&cfg.Address, "a", cfg.Address, "server address")
 	flag.BoolVar(&cfg.Restore, "r", cfg.Restore, "need to restore from file")
-	flag.IntVar(&cfg.StoreInterval, "i", cfg.StoreInterval, "store interval")
+	flag.StringVar(&cfg.StoreInterval, "i", cfg.StoreInterval, "store interval")
 	flag.StringVar(&cfg.StoreFile, "f", cfg.StoreFile, "store file")
+	flag.Parse()
 
 	storage := storageClient.NewMemStorage()
 
-	// restore metrics from file
 	if cfg.Restore {
 		app.RestoreMetrics(storage, cfg)
 	}
+	//flush metrics to file
+	go app.FlushMetrics(storage, cfg)
 
 	r := chi.NewRouter()
 
@@ -42,11 +43,16 @@ func main() {
 
 	r.Route("/", func(r chi.Router) {
 		r.Get("/", handlers.MetricList(storage))
-		r.Get("/value", handlers.GetMetric(storage))
+	})
+
+	r.Route("/value", func(r chi.Router) {
+		r.Post("/", handlers.GetMetricInJSON(storage))
+		r.Get("/{metricType}/{metricName}", handlers.GetMetric(storage))
 	})
 
 	r.Route("/update", func(r chi.Router) {
-		r.Post("/", handlers.UpdateMetric(storage))
+		r.Post("/", handlers.UpdateMetricByJSONData(storage))
+		r.Post("/{metricType}/{metricName}/{metricValue}", handlers.UpdateMetric(storage))
 	})
 
 	// запуск сервера с адресом localhost, порт 8080
@@ -54,7 +60,4 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-
-	// flush metrics to file
-	app.FlushMetrics(storage, cfg)
 }
