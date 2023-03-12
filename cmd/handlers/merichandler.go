@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
@@ -88,14 +87,6 @@ func UpdateMetricByJSONData(storage storageRepository.StorageRepository) http.Ha
 			storage.IncrementCounter(metric.ID, *metric.Delta)
 		case "gauge":
 			storage.SetGaugeMetric(metric.ID, strconv.FormatFloat(*metric.Value, 'g', -1, 64))
-			val, ok := storage.GetGaugeMetric(metric.ID)
-			if !ok {
-				rw.WriteHeader(http.StatusNotFound)
-				rw.Write([]byte(""))
-				return
-			}
-			gaugeMetric, _ := strconv.ParseFloat(val, 64)
-			fmt.Println("gaugeMetric update", gaugeMetric)
 		default:
 			http.Error(rw, "Unsupported metricType"+metric.MType, http.StatusBadRequest)
 			return
@@ -175,7 +166,6 @@ func GetMetricInJSON(storage storageRepository.StorageRepository) http.HandlerFu
 				rw.Write([]byte(""))
 				return
 			}
-			fmt.Println("gaugeMetric get", gaugeMetric)
 			metric.Value = &gaugeMetric
 		default:
 			rw.WriteHeader(http.StatusNotFound)
