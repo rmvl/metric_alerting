@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"reflect"
 	"runtime"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -16,8 +18,8 @@ const typeCounter = "counter"
 
 type Config struct {
 	Address        string `env:"ADDRESS" envDefault:"localhost:8080"`
-	ReportInterval int    `env:"REPORT_INTERVAL" envDefault:"10"`
-	PollInterval   int    `env:"POLL_INTERVAL" envDefault:"2"`
+	ReportInterval string `env:"REPORT_INTERVAL" envDefault:"10s"`
+	PollInterval   string `env:"POLL_INTERVAL" envDefault:"2s"`
 }
 
 type MetricsToMonitor struct {
@@ -100,9 +102,13 @@ func MonitorMetrics(cfg Config) {
 	metrics := MetricsToMonitor{}
 
 	start := time.Now()
-	pollTicker := time.NewTicker(time.Duration(cfg.PollInterval) * time.Second)
+
+	pollInterval, _ := strconv.Atoi(strings.TrimSuffix(cfg.PollInterval, "s"))
+	pollTicker := time.NewTicker(time.Duration(pollInterval) * time.Second)
 	defer pollTicker.Stop()
-	reportTicker := time.NewTicker(time.Duration(cfg.ReportInterval) * time.Second)
+
+	reportInterval, _ := strconv.Atoi(strings.TrimSuffix(cfg.ReportInterval, "s"))
+	reportTicker := time.NewTicker(time.Duration(reportInterval) * time.Second)
 	defer reportTicker.Stop()
 
 	for {
