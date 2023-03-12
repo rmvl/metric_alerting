@@ -18,6 +18,10 @@ type metric struct {
 }
 
 func FlushMetrics(storage storageRepository.StorageRepository, cfg ServerConfig) {
+	//mtx := storage.GetMutex()
+	//mtx.Lock()
+	//defer mtx.Unlock()
+
 	reportInterval, _ := strconv.Atoi(strings.TrimSuffix(cfg.StoreInterval, "s"))
 	flusherIntervalTicker := time.NewTicker(time.Duration(reportInterval) * time.Second)
 
@@ -57,6 +61,10 @@ func FlushMetrics(storage storageRepository.StorageRepository, cfg ServerConfig)
 }
 
 func RestoreMetrics(storage storageRepository.StorageRepository, cfg ServerConfig) {
+	mtx := storage.GetMutex()
+	mtx.Lock()
+	defer mtx.Unlock()
+
 	fileName := cfg.StoreFile
 	consumer, err := NewConsumer(fileName)
 	if err != nil {
@@ -73,9 +81,9 @@ func RestoreMetrics(storage storageRepository.StorageRepository, cfg ServerConfi
 
 		switch metric.MType {
 		case "counter":
-			storage.IncrementCounter(metric.ID, *metric.Delta)
+			storage.IncrementCounter(metric.ID, *metric.Delta, false)
 		case "gauge":
-			storage.SetGaugeMetric(metric.ID, strconv.FormatFloat(*metric.Value, 'g', 5, 64))
+			storage.SetGaugeMetric(metric.ID, strconv.FormatFloat(*metric.Value, 'g', 5, 64), false)
 		default:
 			fmt.Println("not supported metric type")
 			return
