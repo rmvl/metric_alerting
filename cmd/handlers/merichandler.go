@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
@@ -37,14 +36,14 @@ func UpdateMetric(storage storageRepository.StorageRepository) http.HandlerFunc 
 		switch metricType {
 		case "counter":
 			if s, err := strconv.ParseInt(metricValue, 10, 64); err == nil {
-				storage.IncrementCounter(metricName, s, true)
+				storage.IncrementCounter(metricName, s)
 			} else {
 				http.Error(rw, "metricValue param is not int64", http.StatusBadRequest)
 				return
 			}
 		case "gauge":
 			if _, err := strconv.ParseFloat(metricValue, 64); err == nil {
-				storage.SetGaugeMetric(metricName, metricValue, true)
+				storage.SetGaugeMetric(metricName, metricValue)
 			} else {
 				http.Error(rw, "metricValue param is not float 64", http.StatusBadRequest)
 				return
@@ -85,9 +84,9 @@ func UpdateMetricByJSONData(storage storageRepository.StorageRepository) http.Ha
 
 		switch metric.MType {
 		case "counter":
-			storage.IncrementCounter(metric.ID, *metric.Delta, true)
+			storage.IncrementCounter(metric.ID, *metric.Delta)
 		case "gauge":
-			storage.SetGaugeMetric(metric.ID, strconv.FormatFloat(*metric.Value, 'g', -1, 64), true)
+			storage.SetGaugeMetric(metric.ID, strconv.FormatFloat(*metric.Value, 'g', -1, 64))
 		default:
 			http.Error(rw, "Unsupported metricType"+metric.MType, http.StatusBadRequest)
 			return
@@ -124,7 +123,6 @@ func GetMetricInJSON(storage storageRepository.StorageRepository) http.HandlerFu
 
 		var metric app.Metrics
 		err := json.NewDecoder(r.Body).Decode(&metric)
-		fmt.Println("get json metric", metric)
 		if err != nil {
 			http.Error(rw, "Not valid json", http.StatusBadRequest)
 			return
@@ -149,7 +147,6 @@ func GetMetricInJSON(storage storageRepository.StorageRepository) http.HandlerFu
 		switch metric.MType {
 		case "counter":
 			val, ok := storage.GetCounterMetric(metric.ID)
-			fmt.Println("Get counter", metric.ID, val, ok)
 			if !ok {
 				rw.WriteHeader(http.StatusNotFound)
 				rw.Write([]byte(""))

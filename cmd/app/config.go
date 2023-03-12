@@ -8,7 +8,7 @@ type AgentConfig struct {
 
 type ServerConfig struct {
 	Address       string `env:"ADDRESS" envDefault:"localhost:8080"`
-	StoreInterval string `env:"STORE_INTERVAL" envDefault:"300s"`
-	StoreFile     string `env:"STORE_FILE" envDefault:"/tmp/devops-metrics-db.json"`
+	StoreInterval string `env:"STORE_INTERVAL" envDefault:"11s"`
+	StoreFile     string `env:"STORE_FILE" envDefault:"/tmp/devops-metrics-db.2.json"`
 	Restore       bool   `env:"RESTORE" envDefault:"true"`
 }

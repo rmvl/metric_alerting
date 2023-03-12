@@ -22,22 +22,18 @@ func main() {
 
 	storage := storageClient.NewMemStorage()
 
+	if cfg.Restore {
+		app.RestoreMetrics(storage, cfg)
+	}
+	//flush metrics to file
+	go app.FlushMetrics(storage, cfg)
+
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-	//r.Use(func(handler http.Handler) http.Handler {
-	//	// restore metrics from file
-	//	if cfg.Restore {
-	//		app.RestoreMetrics(storage, cfg)
-	//	}
-	//	//// flush metrics to file
-	//	go app.FlushMetrics(storage, cfg)
-	//
-	//	return handler
-	//})
 
 	r.Route("/", func(r chi.Router) {
 		r.Get("/", handlers.MetricList(storage))
@@ -54,15 +50,12 @@ func main() {
 	})
 
 	// запуск сервера с адресом localhost, порт 8080
-	//err = http.ListenAndServe(cfg.Address, r)
-	ln, err := createListener(cfg, storage)
-	err = http.Serve(ln, r)
+	err = http.ListenAndServe(cfg.Address, r)
+	//ln, err := createListener(cfg, storage)
+	//err = http.Serve(ln, r)
 	if err != nil {
 		fmt.Println(err)
 	}
-
-	//flush metrics to file
-	//app.FlushMetrics(storage, cfg)
 }
 
 func createListener(cfg app.ServerConfig, storage storageClient.StorageRepository) (net.Listener, error) {
@@ -73,9 +66,6 @@ func createListener(cfg app.ServerConfig, storage storageClient.StorageRepositor
 	if cfg.Restore {
 		go app.RestoreMetrics(storage, cfg)
 	}
-
-	// flush metrics to file
-	go app.FlushMetrics(storage, cfg)
 
 	return ln, nil
 }
