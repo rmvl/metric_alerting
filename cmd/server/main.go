@@ -7,7 +7,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"net/http"
-	"os"
 	"yalerting/cmd/app"
 	"yalerting/cmd/handlers"
 	storageClient "yalerting/cmd/storage"
@@ -20,29 +19,10 @@ func main() {
 		panic(err)
 	}
 
-	var address, storeInterval, storeFile string
-	var restore bool
-	flag.StringVar(&address, "a", cfg.Address, "server address")
-	flag.BoolVar(&restore, "r", cfg.Restore, "need to restore from file")
-	flag.StringVar(&storeInterval, "i", cfg.StoreInterval, "store interval")
-	flag.StringVar(&storeFile, "f", cfg.StoreFile, "store file")
-
-	_, present := os.LookupEnv("ADDRESS")
-	if !present && len(address) > 0 {
-		cfg.Address = address
-	}
-	_, present = os.LookupEnv("RESTORE")
-	if !present && restore {
-		cfg.Restore = restore
-	}
-	_, present = os.LookupEnv("STORE_INTERVAL")
-	if !present && len(storeInterval) > 0 {
-		cfg.StoreInterval = storeInterval
-	}
-	_, present = os.LookupEnv("STORE_FILE")
-	if !present && len(storeFile) > 0 {
-		cfg.StoreFile = storeFile
-	}
+	flag.StringVar(&cfg.Address, "a", cfg.Address, "server address")
+	flag.BoolVar(&cfg.Restore, "r", cfg.Restore, "need to restore from file")
+	flag.StringVar(&cfg.StoreInterval, "i", cfg.StoreInterval, "store interval")
+	flag.StringVar(&cfg.StoreFile, "f", cfg.StoreFile, "store file")
 	flag.Parse()
 
 	fmt.Println(cfg)
