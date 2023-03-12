@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -19,7 +20,24 @@ type ServerConfig struct {
 }
 
 func (cfg *ServerConfig) GetStoreInterval() int {
-	storeInterval, _ := strconv.Atoi(strings.TrimSuffix(cfg.StoreInterval, "s"))
+	if strings.HasSuffix(cfg.StoreInterval, "s") {
+		storeInterval, err := strconv.Atoi(strings.TrimSuffix(cfg.StoreInterval, "s"))
+		if err != nil {
+			fmt.Println(err)
+		}
+		return storeInterval
+	}
+	if strings.HasSuffix(cfg.StoreInterval, "m") {
+		storeInterval, err := strconv.Atoi(strings.TrimSuffix(cfg.StoreInterval, "m"))
+		if err != nil {
+			fmt.Println(err)
+		}
+		return storeInterval
+	}
+	storeInterval, err := strconv.Atoi(cfg.StoreInterval)
+	if err != nil {
+		fmt.Println(err)
+	}
 	return storeInterval
 }
 
