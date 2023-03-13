@@ -59,7 +59,7 @@ func main() {
 	storage := storageClient.NewMemStorage()
 
 	if cfg.Restore {
-		app.RestoreMet	rics(storage, cfg)
+		app.RestoreMetrics(storage, cfg)
 	}
 	//flush metrics to file
 	go app.FlushMetrics(storage, cfg)
