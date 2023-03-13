@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"net/http"
+	"os"
 	"yalerting/cmd/app"
 	"yalerting/cmd/handlers"
 	storageClient "yalerting/cmd/storage"
@@ -15,15 +16,7 @@ import (
 
 func main() {
 	var cfg app.ServerConfig
-	err := env.Parse(&cfg)
-	if err != nil {
-		panic(err)
-	}
-	flag.StringVar(&cfg.Address, "a", cfg.Address, "server address")
-	flag.BoolVar(&cfg.Restore, "r", cfg.Restore, "need to restore from file")
-	flag.StringVar(&cfg.StoreInterval, "i", cfg.StoreInterval, "store interval")
-	flag.StringVar(&cfg.StoreFile, "f", cfg.StoreFile, "store file")
-	flag.Parse()
+	loadConfiguration(&cfg)
 
 	storage := storageClient.NewMemStorage()
 
@@ -56,8 +49,40 @@ func main() {
 	})
 
 	// запуск сервера с адресом localhost, порт 8080
-	err = http.ListenAndServe(cfg.Address, r)
+	err := http.ListenAndServe(cfg.Address, r)
 	if err != nil {
 		fmt.Println(err)
+	}
+}
+
+func loadConfiguration(cfg *app.ServerConfig) {
+	err := env.Parse(cfg)
+	if err != nil {
+		panic(err)
+	}
+
+	var address, storeInterval, storeFile string
+	restore := new(app.Restore)
+	flag.Var(restore, "r", "need to restore from file")
+	flag.StringVar(&address, "a", cfg.Address, "server address")
+	flag.StringVar(&storeInterval, "i", cfg.StoreInterval, "store interval")
+	flag.StringVar(&storeFile, "f", cfg.StoreFile, "store file")
+	flag.Parse()
+
+	_, present := os.LookupEnv("ADDRESS")
+	if !present && len(address) > 0 {
+		cfg.Address = address
+	}
+	_, present = os.LookupEnv("RESTORE")
+	if !present && !restore.IsSet {
+		cfg.Restore = restore.Value
+	}
+	_, present = os.LookupEnv("STORE_INTERVAL")
+	if !present && len(storeInterval) > 0 {
+		cfg.StoreInterval = storeInterval
+	}
+	_, present = os.LookupEnv("STORE_FILE")
+	if !present && len(storeFile) > 0 {
+		cfg.StoreFile = storeFile
 	}
 }

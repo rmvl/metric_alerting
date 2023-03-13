@@ -22,7 +22,6 @@ func FlushMetrics(storage storageRepository.StorageRepository, cfg ServerConfig)
 				log.Fatal(err)
 			}
 
-			fmt.Println("flush metrics", storage)
 			for k, v := range storage.GetCounters() {
 				event := Metrics{ID: k, Delta: &v, MType: "counter"}
 				if err := producer.WriteEvent(event); err != nil {

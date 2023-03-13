@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/caarlos0/env/v6"
 	"yalerting/cmd/app"
 )
@@ -18,5 +19,6 @@ func main() {
 	flag.StringVar(&cfg.PollInterval, "p", cfg.PollInterval, "poll interval")
 	flag.Parse()
 
+	fmt.Println(cfg)
 	app.MonitorMetrics(cfg)
 }
