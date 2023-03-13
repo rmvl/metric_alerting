@@ -14,9 +14,24 @@ type AgentConfig struct {
 
 type ServerConfig struct {
 	Address       string `env:"ADDRESS" envDefault:"localhost:8080"`
-	StoreInterval string `env:"STORE_INTERVAL" envDefault:"11s"`
+	StoreInterval string `env:"STORE_INTERVAL" envDefault:"10s"`
 	StoreFile     string `env:"STORE_FILE" envDefault:"/tmp/devops-metrics-db.2.json"`
 	Restore       bool   `env:"RESTORE" envDefault:"true"`
+}
+
+type Restore struct {
+	IsSet bool
+	Value bool
+}
+
+func (u *Restore) String() string {
+	return fmt.Sprint(u.Value)
+}
+
+func (u *Restore) Set(value string) error {
+	u.Value, _ = strconv.ParseBool(value)
+	u.IsSet = true
+	return nil
 }
 
 func (cfg *ServerConfig) GetStoreInterval() int {
