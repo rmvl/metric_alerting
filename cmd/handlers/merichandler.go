@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
@@ -127,8 +126,6 @@ func GetMetricInJSON(storage storageRepository.StorageRepository) http.HandlerFu
 			http.Error(rw, "Not valid json", http.StatusBadRequest)
 			return
 		}
-
-		fmt.Println("getmetricinjson", metric)
 
 		if metric.ID == "" {
 			http.Error(rw, "metricId param is empty", http.StatusBadRequest)

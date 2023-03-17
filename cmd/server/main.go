@@ -37,7 +37,6 @@ func gzipHandle(next http.Handler) http.Handler {
 			return
 		}
 
-		fmt.Println("FZIPPPPPPPPPPPPPPP")
 		// создаём gzip.Writer поверх текущего w
 		gz, err := gzip.NewWriterLevel(w, gzip.BestSpeed)
 		if err != nil {
