@@ -1,7 +1,24 @@
 package main
 
-import "yalerting/cmd/app"
+import (
+	"flag"
+	"fmt"
+	"github.com/caarlos0/env/v6"
+	"yalerting/cmd/app"
+)
 
 func main() {
-	app.MonitorMetrics()
+	var cfg app.AgentConfig
+	err := env.Parse(&cfg)
+	if err != nil {
+		panic(err)
+	}
+
+	flag.StringVar(&cfg.Address, "a", cfg.Address, "address to send metrics")
+	flag.StringVar(&cfg.ReportInterval, "r", cfg.ReportInterval, "report interval")
+	flag.StringVar(&cfg.PollInterval, "p", cfg.PollInterval, "poll interval")
+	flag.Parse()
+
+	fmt.Println(cfg)
+	app.MonitorMetrics(cfg)
 }
