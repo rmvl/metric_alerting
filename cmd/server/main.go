@@ -51,6 +51,7 @@ func gzipHandle(next http.Handler) http.Handler {
 		next.ServeHTTP(gzipWriter{ResponseWriter: w, Writer: gz}, r)
 	})
 }
+
 func main() {
 	var cfg app.ServerConfig
 	loadConfiguration(&cfg)

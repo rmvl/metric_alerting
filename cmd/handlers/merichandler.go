@@ -105,7 +105,7 @@ func UpdateMetricByJSONData(storage storageRepository.StorageRepository) http.Ha
 
 func MetricList(storage storageRepository.StorageRepository) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
-		rw.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		rw.Header().Set("Content-Type", "html/text; charset=UTF-8")
 
 		rw.WriteHeader(http.StatusOK)
 		var response string
@@ -120,7 +120,6 @@ func MetricList(storage storageRepository.StorageRepository) http.HandlerFunc {
 
 func GetMetricInJSON(storage storageRepository.StorageRepository) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
-		rw.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 		var metric app.Metrics
 		err := json.NewDecoder(r.Body).Decode(&metric)
