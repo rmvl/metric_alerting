@@ -19,7 +19,7 @@ type StorageRepository interface {
 type MemStorage struct {
 	metrics  map[string]string
 	counters map[string]int64
-	Mutex    sync.RWMutex
+	mutex    sync.RWMutex
 }
 
 func NewMemStorage() *MemStorage {
@@ -31,28 +31,28 @@ func NewMemStorage() *MemStorage {
 }
 
 func (storage *MemStorage) GetCounters() map[string]int64 {
-	storage.Mutex.Lock()
-	defer storage.Mutex.Unlock()
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
 
 	return storage.counters
 }
 
 func (storage *MemStorage) GetGaugeMetrics() map[string]string {
-	storage.Mutex.Lock()
-	defer storage.Mutex.Unlock()
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
 
 	return storage.metrics
 }
 
 func (storage *MemStorage) SetGaugeMetric(name string, value string) {
-	storage.Mutex.Lock()
-	defer storage.Mutex.Unlock()
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
 	storage.metrics[name] = value
 }
 
 func (storage *MemStorage) IncrementCounter(name string, value int64) {
-	storage.Mutex.Lock()
-	defer storage.Mutex.Unlock()
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
 
 	_, ok := storage.counters[name]
 	if !ok {
@@ -63,8 +63,8 @@ func (storage *MemStorage) IncrementCounter(name string, value int64) {
 }
 
 func (storage *MemStorage) GetCounterMetric(name string) (int64, bool) {
-	storage.Mutex.Lock()
-	defer storage.Mutex.Unlock()
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
 
 	val, ok := storage.counters[name]
 	if !ok {
@@ -75,8 +75,8 @@ func (storage *MemStorage) GetCounterMetric(name string) (int64, bool) {
 }
 
 func (storage *MemStorage) GetGaugeMetric(name string) (string, bool) {
-	storage.Mutex.Lock()
-	defer storage.Mutex.Unlock()
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
 
 	val, ok := storage.metrics[name]
 	if !ok {
@@ -87,8 +87,8 @@ func (storage *MemStorage) GetGaugeMetric(name string) (string, bool) {
 }
 
 func (storage *MemStorage) GetMetric(name string, metricType string) (string, bool) {
-	storage.Mutex.Lock()
-	defer storage.Mutex.Unlock()
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
 
 	if metricType == "counter" {
 		val, ok := storage.counters[name]
@@ -112,8 +112,8 @@ func (storage *MemStorage) GetMetric(name string, metricType string) (string, bo
 }
 
 func (storage *MemStorage) GetList() map[string]string {
-	storage.Mutex.Lock()
-	defer storage.Mutex.Unlock()
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
 
 	allMetrics := make(map[string]string, 100)
 	for k, v := range storage.metrics {
