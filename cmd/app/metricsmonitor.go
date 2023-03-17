@@ -103,6 +103,7 @@ func MonitorMetrics(cfg AgentConfig) {
 	for {
 		select {
 		case x := <-reportTicker.C:
+			fmt.Println(int(x.Sub(start).Seconds()))
 			for _, metric := range trackedMetrics {
 				metricValue := reflect.Indirect(reflect.ValueOf(metrics)).FieldByName(metric)
 
@@ -147,6 +148,7 @@ func MonitorMetrics(cfg AgentConfig) {
 
 			metrics.PollCount = 0
 		case y := <-pollTicker.C:
+			fmt.Println(int(y.Sub(start).Seconds()))
 			runtime.ReadMemStats(&metrics.MemStats)
 			metrics.PollCount += 1
 			metrics.RandomValue = rand.Int63()
