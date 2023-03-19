@@ -28,7 +28,7 @@ func HashMetric(metric *Metrics, secretKey string) (string, error) {
 func CheckHash(metric *Metrics, secretKey string) error {
 	hash, err := HashMetric(metric, secretKey)
 	if err != nil || hash != metric.Hash {
-		return errors.New("Hash not valid")
+		return errors.New("hash is not valid")
 	}
 
 	return nil
