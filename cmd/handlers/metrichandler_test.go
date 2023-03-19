@@ -177,6 +177,7 @@ func TestGetJSON(t *testing.T) {
 		storage   storageClient.StorageRepository
 		metricReq app.Metrics
 		want      want
+		cfg       app.ServerConfig
 	}{
 		{
 			name: "simple test #1",
@@ -191,6 +192,7 @@ func TestGetJSON(t *testing.T) {
 				storage.IncrementCounter("PollCount", delta)
 				return storage
 			}(),
+			cfg: app.ServerConfig{},
 		},
 		{
 			name:      "simple test #2",
@@ -205,6 +207,7 @@ func TestGetJSON(t *testing.T) {
 				storage.SetGaugeMetric("Alloc", "300.123")
 				return storage
 			}(),
+			cfg: app.ServerConfig{},
 		},
 	}
 	for _, tt := range tests {
@@ -218,7 +221,7 @@ func TestGetJSON(t *testing.T) {
 
 			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
 
-			h := http.HandlerFunc(GetMetricInJSON(tt.storage))
+			h := http.HandlerFunc(GetMetricInJSON(tt.storage, tt.cfg))
 			h(w, request)
 			result := w.Result()
 			err := result.Body.Close()
@@ -256,6 +259,7 @@ func TestGetFailJSON(t *testing.T) {
 		storage   storageClient.StorageRepository
 		metricReq app.Metrics
 		want      want
+		cfg       app.ServerConfig
 	}{
 		{
 			name: "simple test #1",
@@ -268,6 +272,7 @@ func TestGetFailJSON(t *testing.T) {
 				storage := storageClient.NewMemStorage()
 				return storage
 			}(),
+			cfg: app.ServerConfig{},
 		},
 	}
 	for _, tt := range tests {
@@ -281,7 +286,7 @@ func TestGetFailJSON(t *testing.T) {
 
 			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
 
-			h := http.HandlerFunc(GetMetricInJSON(tt.storage))
+			h := http.HandlerFunc(GetMetricInJSON(tt.storage, tt.cfg))
 			h(w, request)
 			result := w.Result()
 			err := result.Body.Close()
