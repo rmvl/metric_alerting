@@ -25,9 +25,19 @@ type Metrics struct {
 	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
 	Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
 	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
+	Hash  string   `json:"hash,omitempty"`  // значение хеш-функции
 }
 
 func sendMetric(client http.Client, metric Metrics, cfg AgentConfig) error {
+	if len(cfg.Key) > 0 {
+		hash, err := HashMetric(&metric, cfg.Key)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+		metric.Hash = hash
+	}
+
 	body, err := json.Marshal(metric)
 	if err != nil {
 		panic(err)

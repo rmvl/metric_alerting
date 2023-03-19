@@ -76,7 +76,7 @@ func main() {
 	})
 
 	r.Route("/value", func(r chi.Router) {
-		r.Post("/", handlers.GetMetricInJSON(storage))
+		r.Post("/", handlers.GetMetricInJSON(storage, cfg))
 		r.Get("/{metricType}/{metricName}", handlers.GetMetric(storage))
 	})
 
@@ -98,12 +98,13 @@ func loadConfiguration(cfg *app.ServerConfig) {
 		panic(err)
 	}
 
-	var address, storeInterval, storeFile string
+	var address, storeInterval, storeFile, secretKey string
 	restore := new(app.Restore)
 	flag.Var(restore, "r", "need to restore from file")
 	flag.StringVar(&address, "a", cfg.Address, "server address")
 	flag.StringVar(&storeInterval, "i", cfg.StoreInterval, "store interval")
 	flag.StringVar(&storeFile, "f", cfg.StoreFile, "store file")
+	flag.StringVar(&secretKey, "k", cfg.Key, "key")
 	flag.Parse()
 
 	_, present := os.LookupEnv("ADDRESS")
@@ -121,5 +122,9 @@ func loadConfiguration(cfg *app.ServerConfig) {
 	_, present = os.LookupEnv("STORE_FILE")
 	if !present && len(storeFile) > 0 {
 		cfg.StoreFile = storeFile
+	}
+	_, present = os.LookupEnv("KEY")
+	if !present && len(secretKey) > 0 {
+		cfg.Key = secretKey
 	}
 }

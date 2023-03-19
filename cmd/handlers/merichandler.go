@@ -57,7 +57,7 @@ func UpdateMetric(storage storageRepository.StorageRepository) http.HandlerFunc 
 	}
 }
 
-func UpdateMetricByJSONData(storage storageRepository.StorageRepository) http.HandlerFunc {
+func UpdateMetricByJSONData(storage storageRepository.StorageRepository, cfg app.ServerConfig) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
 		rw.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -66,6 +66,14 @@ func UpdateMetricByJSONData(storage storageRepository.StorageRepository) http.Ha
 		if err != nil {
 			http.Error(rw, "Not valid json", http.StatusBadRequest)
 			return
+		}
+
+		if len(cfg.Key) > 0 {
+			err := app.CheckHash(&metric, cfg.Key)
+			if err != nil {
+				http.Error(rw, "hash not valid", http.StatusBadRequest)
+				return
+			}
 		}
 
 		if metric.ID == "" {
@@ -117,14 +125,21 @@ func MetricList(storage storageRepository.StorageRepository) http.HandlerFunc {
 	}
 }
 
-func GetMetricInJSON(storage storageRepository.StorageRepository) http.HandlerFunc {
+func GetMetricInJSON(storage storageRepository.StorageRepository, cfg app.ServerConfig) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
-
 		var metric app.Metrics
 		err := json.NewDecoder(r.Body).Decode(&metric)
 		if err != nil {
 			http.Error(rw, "Not valid json", http.StatusBadRequest)
 			return
+		}
+
+		if len(cfg.Key) > 0 {
+			err := app.CheckHash(&metric, cfg.Key)
+			if err != nil {
+				http.Error(rw, "hash not valid", http.StatusBadRequest)
+				return
+			}
 		}
 
 		if metric.ID == "" {
@@ -170,6 +185,15 @@ func GetMetricInJSON(storage storageRepository.StorageRepository) http.HandlerFu
 			rw.WriteHeader(http.StatusNotFound)
 			rw.Write([]byte("Not supported metric type" + metric.MType))
 			return
+		}
+
+		if len(cfg.Key) > 0 {
+			hash, err := app.HashMetric(&metric, cfg.Key)
+			if err != nil {
+				rw.WriteHeader(http.StatusBadRequest)
+				rw.Write([]byte("failed to hash"))
+			}
+			metric.Hash = hash
 		}
 
 		rw.WriteHeader(http.StatusOK)
