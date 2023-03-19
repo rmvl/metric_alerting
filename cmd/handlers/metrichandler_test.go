@@ -23,6 +23,7 @@ func TestUpdateMetric(t *testing.T) {
 		contentType string
 		statusCode  int
 		metricResp  app.Metrics
+		сfg         app.ServerConfig
 	}
 	var delta int64
 	var gaugeValue float64
@@ -32,6 +33,7 @@ func TestUpdateMetric(t *testing.T) {
 		name      string
 		metricReq app.Metrics
 		want      want
+		cfg       app.ServerConfig
 	}{
 		{
 			name: "simple test #1",
@@ -41,6 +43,7 @@ func TestUpdateMetric(t *testing.T) {
 				metricResp:  app.Metrics{ID: "PollCount", MType: "counter", Delta: &delta},
 			},
 			metricReq: app.Metrics{ID: "PollCount", MType: "counter", Delta: &delta},
+			cfg:       app.ServerConfig{},
 		},
 		{
 			name: "simple test #1",
@@ -50,6 +53,7 @@ func TestUpdateMetric(t *testing.T) {
 				metricResp:  app.Metrics{ID: "Alloc", MType: "gauge", Value: &gaugeValue},
 			},
 			metricReq: app.Metrics{ID: "Alloc", MType: "gauge", Value: &gaugeValue},
+			cfg:       app.ServerConfig{},
 		},
 	}
 	for _, tt := range tests {
@@ -63,7 +67,7 @@ func TestUpdateMetric(t *testing.T) {
 
 			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
 
-			h := http.HandlerFunc(UpdateMetricByJSONData(storage))
+			h := http.HandlerFunc(UpdateMetricByJSONData(storage, tt.cfg))
 			h(w, request)
 			result := w.Result()
 			defer result.Body.Close()
