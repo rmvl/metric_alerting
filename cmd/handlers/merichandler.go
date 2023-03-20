@@ -127,6 +127,8 @@ func MetricList(storage storageRepository.StorageRepository) http.HandlerFunc {
 
 func GetMetricInJSON(storage storageRepository.StorageRepository, cfg app.ServerConfig) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
+		rw.Header().Set("Content-Type", "application/json")
+
 		var metric app.Metrics
 		err := json.NewDecoder(r.Body).Decode(&metric)
 		if err != nil {
@@ -156,7 +158,6 @@ func GetMetricInJSON(storage storageRepository.StorageRepository, cfg app.Server
 			rw.Write([]byte(""))
 			return
 		}
-		rw.Header().Set("Content-Type", "application/json")
 
 		switch metric.MType {
 		case "counter":
