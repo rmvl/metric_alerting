@@ -136,7 +136,7 @@ func GetMetricInJSON(storage storageRepository.StorageRepository, cfg app.Server
 			return
 		}
 
-		if len(cfg.Key) > 0 || len(metric.Hash) > 0 {
+		if len(cfg.Key) > 0 {
 			err := app.CheckHash(&metric, cfg.Key)
 			if err != nil {
 				http.Error(rw, "hash not valid", http.StatusBadRequest)
