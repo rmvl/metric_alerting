@@ -21,6 +21,5 @@ func main() {
 	flag.Parse()
 
 	fmt.Println(cfg)
-	cfg.Key = "lox"
 	app.MonitorMetrics(cfg)
 }

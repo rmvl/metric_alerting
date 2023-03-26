@@ -53,7 +53,6 @@ func gzipHandle(next http.Handler) http.Handler {
 func main() {
 	var cfg app.ServerConfig
 	loadConfiguration(&cfg)
-	cfg.Key = "lox"
 	fmt.Println(cfg)
 
 	storage := storageClient.NewMemStorage()
