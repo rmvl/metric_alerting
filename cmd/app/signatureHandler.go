@@ -30,7 +30,6 @@ func CheckHash(metric *Metrics, secretKey *string) error {
 	hash, err := HashMetric(metric, secretKey)
 
 	if err != nil || hash != metric.Hash {
-		fmt.Println("HAAAAAAAAAAAAAASH")
 		return errors.New("hash is not valid")
 	}
 
