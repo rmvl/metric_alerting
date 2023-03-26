@@ -30,7 +30,7 @@ type Metrics struct {
 
 func sendMetric(client http.Client, metric Metrics, cfg AgentConfig) error {
 	if len(cfg.Key) > 0 {
-		hash, err := HashMetric(&metric, cfg.Key)
+		hash, err := HashMetric(&metric, &cfg.Key)
 		if err != nil {
 			fmt.Println(err)
 			return err
@@ -58,7 +58,7 @@ func sendMetric(client http.Client, metric Metrics, cfg AgentConfig) error {
 	var metricResp Metrics
 	errR := json.NewDecoder(resp.Body).Decode(&metricResp)
 	if errR != nil {
-		fmt.Println(errR)
+		fmt.Println("ResponseError", errR)
 	}
 	resp.Body.Close()
 	return nil
