@@ -1,13 +1,18 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
+	"yalerting/cmd/app"
 	storageClient "yalerting/cmd/storage"
 )
 
@@ -17,49 +22,52 @@ func TestUpdateMetric(t *testing.T) {
 	type want struct {
 		contentType string
 		statusCode  int
+		metricResp  app.Metrics
+		сfg         app.ServerConfig
 	}
+	var delta int64
+	var gaugeValue float64
+	delta = 200
+	gaugeValue = 300.123
 	tests := []struct {
-		name        string
-		metricType  string
-		metricName  string
-		metricValue string
-		request     string
-		want        want
+		name      string
+		metricReq app.Metrics
+		want      want
+		cfg       app.ServerConfig
 	}{
 		{
 			name: "simple test #1",
 			want: want{
 				contentType: "application/json",
 				statusCode:  200,
+				metricResp:  app.Metrics{ID: "PollCount", MType: "counter", Delta: &delta},
 			},
-			metricType:  "counter",
-			metricName:  "PollCount",
-			metricValue: "1",
+			metricReq: app.Metrics{ID: "PollCount", MType: "counter", Delta: &delta},
+			cfg:       app.ServerConfig{},
 		},
 		{
 			name: "simple test #1",
 			want: want{
 				contentType: "application/json",
 				statusCode:  200,
+				metricResp:  app.Metrics{ID: "Alloc", MType: "gauge", Value: &gaugeValue},
 			},
-			metricType:  "gauge",
-			metricName:  "testGauge",
-			metricValue: "100",
+			metricReq: app.Metrics{ID: "Alloc", MType: "gauge", Value: &gaugeValue},
+			cfg:       app.ServerConfig{},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			method := "/update/" + tt.metricType + "/" + tt.metricName + "/" + tt.metricValue
-			request := httptest.NewRequest(http.MethodPost, method, nil)
+			method := "/update"
+			body, _ := json.Marshal(tt.metricReq)
+
+			request := httptest.NewRequest(http.MethodPost, method, bytes.NewBuffer(body))
 			w := httptest.NewRecorder()
 			rctx := chi.NewRouteContext()
-			rctx.URLParams.Add("metricType", tt.metricType)
-			rctx.URLParams.Add("metricName", tt.metricName)
-			rctx.URLParams.Add("metricValue", tt.metricValue)
 
 			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
 
-			h := http.HandlerFunc(UpdateMetric(storage))
+			h := http.HandlerFunc(UpdateMetricByJSONData(storage, tt.cfg))
 			h(w, request)
 			result := w.Result()
 			defer result.Body.Close()
@@ -67,6 +75,18 @@ func TestUpdateMetric(t *testing.T) {
 			// проверяем код ответа
 			if result.StatusCode != tt.want.statusCode {
 				t.Errorf("Expected status code %d, got %d", tt.want.statusCode, w.Code)
+			}
+
+			var metricResp app.Metrics
+			errR := json.NewDecoder(result.Body).Decode(&metricResp)
+			if errR != nil {
+				fmt.Println(errR)
+			}
+
+			if reflect.DeepEqual(metricResp, tt.want.metricResp) != true {
+				wantResp, _ := json.Marshal(tt.want.metricResp)
+				gotResp, _ := json.Marshal(metricResp)
+				t.Errorf("expected resp %s, got %s", string(wantResp), string(gotResp))
 			}
 		})
 	}
@@ -135,6 +155,146 @@ func TestMetricList(t *testing.T) {
 			}
 			if metricList != tt.want.content {
 				t.Errorf("Expected response body %s, got %s", tt.want.content, metricList)
+			}
+		})
+	}
+}
+
+func TestGetJSON(t *testing.T) {
+	type want struct {
+		contentType string
+		statusCode  int
+		metricResp  app.Metrics
+	}
+
+	var delta int64
+	var gaugeValue float64
+	delta = 200
+	gaugeValue = 300.123
+
+	tests := []struct {
+		name      string
+		storage   storageClient.StorageRepository
+		metricReq app.Metrics
+		want      want
+		cfg       app.ServerConfig
+	}{
+		{
+			name: "simple test #1",
+			want: want{
+				contentType: "application/json",
+				statusCode:  200,
+				metricResp:  app.Metrics{ID: "PollCount", MType: "counter", Delta: &delta},
+			},
+			metricReq: app.Metrics{ID: "PollCount", MType: "counter"},
+			storage: func() storageClient.StorageRepository {
+				storage := storageClient.NewMemStorage()
+				storage.IncrementCounter("PollCount", delta)
+				return storage
+			}(),
+			cfg: app.ServerConfig{},
+		},
+		{
+			name:      "simple test #2",
+			metricReq: app.Metrics{ID: "Alloc", MType: "gauge"},
+			want: want{
+				contentType: "application/json",
+				statusCode:  200,
+				metricResp:  app.Metrics{ID: "Alloc", MType: "gauge", Value: &gaugeValue},
+			},
+			storage: func() storageClient.StorageRepository {
+				storage := storageClient.NewMemStorage()
+				storage.SetGaugeMetric("Alloc", "300.123")
+				return storage
+			}(),
+			cfg: app.ServerConfig{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			method := "/value/"
+			body, _ := json.Marshal(tt.metricReq)
+			request := httptest.NewRequest(http.MethodPost, method, bytes.NewBuffer(body))
+
+			w := httptest.NewRecorder()
+			rctx := chi.NewRouteContext()
+
+			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
+
+			h := http.HandlerFunc(GetMetricInJSON(tt.storage, tt.cfg))
+			h(w, request)
+			result := w.Result()
+			err := result.Body.Close()
+			require.NoError(t, err)
+
+			// проверяем код ответа
+			if result.StatusCode != tt.want.statusCode {
+				t.Errorf("Expected status code %d, got %d", tt.want.statusCode, w.Code)
+			}
+
+			var metricResp app.Metrics
+			errR := json.NewDecoder(result.Body).Decode(&metricResp)
+			if errR != nil {
+				fmt.Println(errR)
+			}
+
+			if reflect.DeepEqual(metricResp, tt.want.metricResp) != true {
+				wantResp, _ := json.Marshal(tt.want.metricResp)
+				gotResp, _ := json.Marshal(metricResp)
+				t.Errorf("expected resp %s, got %s", string(wantResp), string(gotResp))
+			}
+		})
+	}
+}
+
+func TestGetFailJSON(t *testing.T) {
+	type want struct {
+		contentType string
+		statusCode  int
+		metricResp  app.Metrics
+	}
+
+	tests := []struct {
+		name      string
+		storage   storageClient.StorageRepository
+		metricReq app.Metrics
+		want      want
+		cfg       app.ServerConfig
+	}{
+		{
+			name: "simple test #1",
+			want: want{
+				contentType: "application/json",
+				statusCode:  404,
+			},
+			metricReq: app.Metrics{ID: "PollCount", MType: "counter"},
+			storage: func() storageClient.StorageRepository {
+				storage := storageClient.NewMemStorage()
+				return storage
+			}(),
+			cfg: app.ServerConfig{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			method := "/value/"
+			body, _ := json.Marshal(tt.metricReq)
+			request := httptest.NewRequest(http.MethodPost, method, bytes.NewBuffer(body))
+
+			w := httptest.NewRecorder()
+			rctx := chi.NewRouteContext()
+
+			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
+
+			h := http.HandlerFunc(GetMetricInJSON(tt.storage, tt.cfg))
+			h(w, request)
+			result := w.Result()
+			err := result.Body.Close()
+			require.NoError(t, err)
+
+			// проверяем код ответа
+			if result.StatusCode != tt.want.statusCode {
+				t.Errorf("Expected status code %d, got %d", tt.want.statusCode, w.Code)
 			}
 		})
 	}
