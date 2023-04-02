@@ -39,9 +39,9 @@ func HashMetric(metric Metrics, secretKey string) (string, error) {
 
 func CheckHash(metric Metrics, secretKey string) error {
 	fmt.Println("merickhas", metric.Hash, &metric.Hash)
-	//if metric.Hash == "" {
-	//	return errors.New("hash is not valid")
-	//}
+	if metric.Hash == "" {
+		return nil
+	}
 
 	hash, err := HashMetric(metric, secretKey)
 	if err != nil || hash != metric.Hash {
