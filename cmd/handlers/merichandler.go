@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
@@ -136,14 +137,6 @@ func GetMetricInJSON(storage storageRepository.StorageRepository, cfg app.Server
 			return
 		}
 
-		if len(cfg.Key) > 0 {
-			err := app.CheckHash(metric, cfg.Key)
-			if err != nil {
-				http.Error(rw, "hash not valid", http.StatusBadRequest)
-				return
-			}
-		}
-
 		if metric.ID == "" {
 			http.Error(rw, "metricId param is empty", http.StatusBadRequest)
 			return
@@ -157,6 +150,15 @@ func GetMetricInJSON(storage storageRepository.StorageRepository, cfg app.Server
 			rw.WriteHeader(http.StatusNotFound)
 			rw.Write([]byte(""))
 			return
+		}
+
+		if len(cfg.Key) > 0 {
+			fmt.Println(metric, cfg.Key)
+			err := app.CheckHash(metric, cfg.Key)
+			if err != nil {
+				http.Error(rw, "hash not valid", http.StatusBadRequest)
+				return
+			}
 		}
 
 		switch metric.MType {

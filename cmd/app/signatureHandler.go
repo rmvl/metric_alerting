@@ -12,6 +12,9 @@ func HashMetric(metric Metrics, secretKey string) (string, error) {
 	var dataToHash string
 	switch metric.MType {
 	case "counter":
+		//if metric.Delta == nil {
+		//
+		//}
 		dataToHash = fmt.Sprintf("%s:counter:%d", metric.ID, *metric.Delta)
 	case "gauge":
 		dataToHash = fmt.Sprintf("%s:gauge:%f", metric.ID, *metric.Value)
@@ -23,12 +26,19 @@ func HashMetric(metric Metrics, secretKey string) (string, error) {
 	h := hmac.New(sha256.New, []byte(secretKey))
 	h.Write([]byte(dataToHash))
 	dst := h.Sum(nil)
-	return base64.URLEncoding.EncodeToString(dst), nil
+
+	r := base64.URLEncoding.EncodeToString(dst)
+
+	return r, nil
 }
 
 func CheckHash(metric Metrics, secretKey string) error {
-	hash, err := HashMetric(metric, secretKey)
+	fmt.Println("merickhas", metric.Hash, &metric.Hash)
+	if &metric.Hash == nil {
+		return errors.New("hash is not valid")
+	}
 
+	hash, err := HashMetric(metric, secretKey)
 	if err != nil || hash != metric.Hash {
 		return errors.New("hash is not valid")
 	}
