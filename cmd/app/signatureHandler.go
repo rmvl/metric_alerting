@@ -12,12 +12,17 @@ func HashMetric(metric Metrics, secretKey string) (string, error) {
 	var dataToHash string
 	switch metric.MType {
 	case "counter":
-		//if metric.Delta == nil {
-		//
-		//}
-		dataToHash = fmt.Sprintf("%s:counter:%d", metric.ID, *metric.Delta)
+		if metric.Delta == nil {
+			dataToHash = fmt.Sprintf("%s:counter:%s", metric.ID, "")
+		} else {
+			dataToHash = fmt.Sprintf("%s:counter:%d", metric.ID, *metric.Delta)
+		}
 	case "gauge":
-		dataToHash = fmt.Sprintf("%s:gauge:%f", metric.ID, *metric.Value)
+		if metric.Delta == nil {
+			dataToHash = fmt.Sprintf("%s:gauge:%s", metric.ID, "")
+		} else {
+			dataToHash = fmt.Sprintf("%s:gauge:%f", metric.ID, *metric.Value)
+		}
 	default:
 		fmt.Println("error")
 		return "", errors.New("metric type is not implemented")
@@ -34,9 +39,9 @@ func HashMetric(metric Metrics, secretKey string) (string, error) {
 
 func CheckHash(metric Metrics, secretKey string) error {
 	fmt.Println("merickhas", metric.Hash, &metric.Hash)
-	if metric.Hash == "" {
-		return errors.New("hash is not valid")
-	}
+	//if metric.Hash == "" {
+	//	return errors.New("hash is not valid")
+	//}
 
 	hash, err := HashMetric(metric, secretKey)
 	if err != nil || hash != metric.Hash {
