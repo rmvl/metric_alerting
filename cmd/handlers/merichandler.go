@@ -69,7 +69,7 @@ func UpdateMetricByJSONData(storage storageRepository.StorageRepository, cfg app
 		}
 
 		if len(cfg.Key) > 0 {
-			err := app.CheckHash(&metric, &cfg.Key)
+			err := app.CheckHash(metric, cfg.Key)
 			if err != nil {
 				http.Error(rw, "hash not valid", http.StatusBadRequest)
 				return
@@ -189,7 +189,7 @@ func GetMetricInJSON(storage storageRepository.StorageRepository, cfg app.Server
 		}
 
 		if len(cfg.Key) > 0 {
-			hash, err := app.HashMetric(&metric, &cfg.Key)
+			hash, err := app.HashMetric(metric, cfg.Key)
 			if err != nil {
 				rw.WriteHeader(http.StatusBadRequest)
 				rw.Write([]byte("failed to hash"))

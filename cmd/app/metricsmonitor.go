@@ -30,7 +30,7 @@ type Metrics struct {
 
 func sendMetric(client http.Client, metric Metrics, cfg AgentConfig) error {
 	if len(cfg.Key) > 0 {
-		hash, err := HashMetric(&metric, &cfg.Key)
+		hash, err := HashMetric(metric, cfg.Key)
 		if err != nil {
 			fmt.Println(err)
 			return err
