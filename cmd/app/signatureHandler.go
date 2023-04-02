@@ -8,7 +8,7 @@ import (
 	"fmt"
 )
 
-func HashMetric(metric Metrics, secretKey string) (string, error) {
+func HashMetric(metric *Metrics, secretKey *string) (string, error) {
 	var dataToHash string
 	switch metric.MType {
 	case "counter":
@@ -28,7 +28,7 @@ func HashMetric(metric Metrics, secretKey string) (string, error) {
 		return "", errors.New("metric type is not implemented")
 	}
 
-	h := hmac.New(sha256.New, []byte(secretKey))
+	h := hmac.New(sha256.New, []byte(*secretKey))
 	h.Write([]byte(dataToHash))
 	dst := h.Sum(nil)
 
@@ -37,7 +37,7 @@ func HashMetric(metric Metrics, secretKey string) (string, error) {
 	return r, nil
 }
 
-func CheckHash(metric Metrics, secretKey string) error {
+func CheckHash(metric *Metrics, secretKey *string) error {
 	fmt.Println("merickhas", metric.Hash, &metric.Hash)
 	if metric.Hash == "" {
 		return nil
